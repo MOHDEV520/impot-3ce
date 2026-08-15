@@ -1,0 +1,50 @@
+# ============================================
+# CONFIGURATION APACHE - SÉCURITÉ
+# Système de Gestion Fiscale
+# ============================================
+
+# Empêcher l'affichage du contenu des dossiers
+Options -Indexes
+
+# Protéger les fichiers sensibles
+<FilesMatch "\.(db|sql|md|git|env|log)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Protéger le dossier database
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^database/ - [F,L]
+    RewriteRule ^backups/ - [F,L]
+    RewriteRule ^config/ - [F,L]
+    RewriteRule ^classes/ - [F,L]
+</IfModule>
+
+# Headers de sécurité
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# Compression GZIP
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript
+</IfModule>
+
+# Cache pour les assets statiques
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType text/css "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+</IfModule>
+
+# Limite la taille des uploads (50MB)
+php_value upload_max_filesize 50M
+php_value post_max_size 50M
+
+# Encodage UTF-8
+AddDefaultCharset UTF-8

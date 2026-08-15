@@ -1,0 +1,39 @@
+# ============================================
+# 3CE FISCUS - Fichiers ignorés par Git
+# ============================================
+
+# Dépendances Node (réinstallées via npm install)
+node_modules/
+
+# Sortie de build Electron (régénérée via npm run dist)
+dist_desktop/
+dist/
+
+# Bases de données locales (chaque PC a la sienne dans %APPDATA%)
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+database/database.sqlite
+
+# Sauvegardes générées par l'application
+backups/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Fichiers d'environnement / secrets
+.env
+.env.local
+
+# Fichiers système / éditeur
+nul
+.DS_Store
+Thumbs.db
+.vscode/
+*.swp
+*~
+
+# Fichiers temporaires de transfert
+transfer_*.json
