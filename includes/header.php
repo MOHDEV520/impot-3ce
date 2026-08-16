@@ -49,10 +49,10 @@ $basePath = strpos($_SERVER['PHP_SELF'], '/pages/') !== false ? '../' : '';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($titrePage) ?> - Gestion Fiscale</title>
     <!-- Tailwind CSS (Offline) -->
-    <link rel="stylesheet" href="<?= $basePath ?>assets/css/style.css?v=1.1">
-    
+    <link rel="stylesheet" href="<?= $basePath ?>assets/css/style.css?v=1.2">
+
     <!-- Font Awesome (Offline) -->
-    <link rel="stylesheet" href="<?= $basePath ?>assets/vendor/fontawesome/css/all.min.css?v=1.1">
+    <link rel="stylesheet" href="<?= $basePath ?>assets/vendor/fontawesome/css/all.min.css?v=1.2">
     
     <!-- Styles personnalisés -->
     <style>
