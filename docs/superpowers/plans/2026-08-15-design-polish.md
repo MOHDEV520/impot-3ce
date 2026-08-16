@@ -619,7 +619,7 @@ to:
         <?php endif; ?>
 ```
 
-(This matches the alert style already used in `pages/clients.php:107` — visual consistency between the two pilot pages, and it keeps working with `footer.php`'s existing `[class*="border-l-4"]` auto-dismiss script since it now also matches that selector.)
+(This matches the alert style already used in `pages/clients.php:107` — visual consistency between the two pilot pages. Correction: none of the 3 pilot pages actually include `includes/footer.php` — each builds its own inline page shell — so its `[class*="border-l-4"]` auto-dismiss script does not apply here; this is a look-alike style match only, not shared auto-dismiss behavior.)
 
 - [ ] **Step 2: Switch the selector panel wrapper to `.card`**
 
@@ -677,7 +677,7 @@ Start the app, log in, open `pages/impots.php?client=<un id client existant>`:
 1. Any success/error message banner (e.g. after saving) now shows with a colored left border, matching the style on `clients.php`.
 2. The "Type d'impôt" selector panel is a white card with the same shadow/radius as the cards on `dashboard.php`/`clients.php`.
 3. Switch the "Impôt" dropdown through TVA / Salaires / Location / CA (CSS) / RAS — confirm every tax-type calculation table still renders and calculates identically to before (this task did not touch that markup, but confirm nothing broke from the two edits above).
-4. The 3 bottom buttons ("Récap Paiements" in red, "Enregistrer" in green, "Fermer" in slate) keep their colors and still submit/navigate correctly.
+4. The 3 bottom buttons ("Récap Paiements" in red, "Enregistrer" in green, "Fermer" in slate) still submit/navigate correctly. Correction: their exact shade moved by one Tailwind step (e.g. `bg-red-600`→`bg-red-700`) and padding tightened (`px-6`→`px-4`) as an intentional consequence of standardizing on `.btn-*` — "keep their colors" above means same hue family, not byte-identical values; this is expected, not a regression.
 5. Print preview (`Ctrl+P`) on this page still hides `.no-print` elements as before (Task 1/2 did not touch the `@media print` rule in `includes/header.php`, and `impots.php` builds its own `<head>` without that rule — confirm this was already the case before your change, i.e. this task introduces no regression here).
 
 - [ ] **Step 5: Commit**
