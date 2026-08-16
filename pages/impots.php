@@ -563,13 +563,13 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
     <main class="max-w-7xl mx-auto px-4 py-2">
         <!-- Message -->
         <?php if ($message): ?>
-        <div class="mb-4 p-4 rounded-lg <?= $messageType === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700' ?>">
+        <div class="mb-4 p-4 rounded-lg border-l-4 <?= $messageType === 'error' ? 'bg-red-50 border-red-500 text-red-700' : 'bg-green-50 border-green-500 text-green-700' ?>">
             <?= htmlspecialchars($message) ?>
         </div>
         <?php endif; ?>
 
         <!-- Sélecteur de type d'impôt et Marge -->
-        <div class="mb-6 bg-white rounded-xl shadow-sm border p-4">
+        <div class="card mb-6 p-4">
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <!-- Sélecteur Impôt -->
                 <div class="flex items-center gap-3">
@@ -1714,15 +1714,15 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
                     </div>
                     <div class="flex space-x-3">
                         <a href="recap-paiements.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" 
-                           class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium">
-                            <i class="fas fa-file-pdf mr-2"></i>Récap Paiements
+                           class="btn-danger">
+                            <i class="fas fa-file-pdf"></i>Récap Paiements
                         </a>
-                        <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium">
-                            <i class="fas fa-save mr-2"></i>Enregistrer
+                        <button type="submit" class="btn-success">
+                            <i class="fas fa-save"></i>Enregistrer
                         </button>
                         <a href="dashboard.php" 
-                           class="px-6 py-2 bg-slate-500 text-white rounded-lg hover:bg-slate-600 font-medium">
-                            <i class="fas fa-times mr-2"></i>Fermer
+                           class="btn-secondary">
+                            <i class="fas fa-times"></i>Fermer
                         </a>
                     </div>
                 </div>
