@@ -150,13 +150,13 @@ $pageTitle = "Liste des Clients";
 
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-slate-800">Liste des Clients</h1>
-            <a href="client-nouveau.php" class="inline-flex items-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors">
-                <i class="fas fa-plus mr-2"></i> Nouveau client
+            <a href="client-nouveau.php" class="btn-success">
+                <i class="fas fa-plus"></i> Nouveau client
             </a>
         </div>
 
         <!-- Filtres -->
-        <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
+        <div class="card mb-6 p-4">
             <form method="GET" class="flex flex-wrap items-center gap-4">
                 <!-- Recherche -->
                 <div class="flex-1 min-w-50">
@@ -186,22 +186,22 @@ $pageTitle = "Liste des Clients";
                     <option value="incomplet" <?= $filtreEtat === 'incomplet' ? 'selected' : '' ?>>Incomplet</option>
                 </select>
                 
-                <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
-                    <i class="fas fa-filter mr-2"></i> Filtrer
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-filter"></i> Filtrer
                 </button>
-                
+
                 <?php if (!empty($recherche) || !empty($filtreActivite) || !empty($filtreEtat)): ?>
-                <a href="clients.php" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50">
-                    <i class="fas fa-times mr-2"></i> Réinitialiser
+                <a href="clients.php" class="btn-outline">
+                    <i class="fas fa-times"></i> Réinitialiser
                 </a>
                 <?php endif; ?>
             </form>
         </div>
 
         <!-- Tableau des clients -->
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-            <table class="w-full">
-                <thead class="bg-slate-50 border-b">
+        <div class="card overflow-hidden p-0">
+            <table class="table-clean">
+                <thead>
                     <tr>
                         <th class="px-6 py-3 text-left text-sm font-medium text-slate-600">Client</th>
                         <th class="px-4 py-3 text-left text-sm font-medium text-slate-600">Activité</th>
@@ -235,7 +235,7 @@ $pageTitle = "Liste des Clients";
                             <?= $moisNoms[$moisActuel] ?> <?= $anneeActuelle ?>
                         </td>
                         <td class="px-4 py-4 text-center">
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-white text-sm font-medium <?= $client['etat_class'] ?>">
+                            <span class="badge text-white text-sm <?= $client['etat_class'] ?>">
                                 <?= $client['etat_label'] ?>
                             </span>
                         </td>
@@ -244,8 +244,8 @@ $pageTitle = "Liste des Clients";
                         </td>
                         <td class="px-4 py-4 text-center">
                             <div class="flex justify-center space-x-2">
-                                <a href="achats.php?client=<?= $client['id'] ?>&mois=<?= $moisActuel ?>&annee=<?= $anneeActuelle ?>" 
-                                   class="inline-flex items-center px-3 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
+                                <a href="achats.php?client=<?= $client['id'] ?>&mois=<?= $moisActuel ?>&annee=<?= $anneeActuelle ?>"
+                                   class="btn-primary px-3 py-2"
                                    title="Ouvrir le dossier">
                                     <i class="fas fa-folder-open"></i>
                                 </a>
