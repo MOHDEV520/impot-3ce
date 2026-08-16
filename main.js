@@ -27,6 +27,32 @@ ipcMain.handle('get-version', () => {
 
 let mainWindow;
 let phpServer;
+// Vrai uniquement quand l'utilisateur ferme volontairement l'application : on
+// distingue ainsi un arrêt normal de php.exe d'un crash à superviser/relancer.
+let isQuitting = false;
+// URL courante du serveur PHP interne (reutilisée lors d'un redémarrage).
+let currentServerUrl = null;
+// Garde-fou anti-boucle : nombre de redémarrages automatiques déjà tentés.
+let phpRestartCount = 0;
+const PHP_MAX_RESTARTS = 5;
+
+// Verrou d'instance unique : sans cela, lancer l'application deux fois démarre
+// DEUX serveurs php.exe (ports différents) pointant sur le MÊME fichier SQLite
+// (%APPDATA%/IMPOT-3CE/database.sqlite) → écritures concurrentes → « database
+// is locked » intermittent au moment de valider un formulaire.
+const aObtenuLeVerrou = app.requestSingleInstanceLock();
+if (!aObtenuLeVerrou) {
+    app.quit();
+} else {
+    app.on('second-instance', () => {
+        // L'utilisateur a relancé l'app : on ramène la fenêtre existante au premier
+        // plan au lieu d'ouvrir une seconde instance.
+        if (mainWindow) {
+            if (mainWindow.isMinimized()) mainWindow.restore();
+            mainWindow.focus();
+        }
+    });
+}
 
 function getPhpPath() {
     return path.join(__dirname, 'bin/php/php.exe');
@@ -110,10 +136,11 @@ async function startPhpServer() {
     // Si php.exe echoue a demarrer ou se termine avant d'avoir repondu (DLL
     // manquante, antivirus, port bloque...), on le detecte immediatement au
     // lieu d'attendre betement l'expiration du delai de waitForServerReady.
+    const onErrorPrecoce = (err) => rejeter(new Error('Impossible de lancer le serveur PHP interne : ' + err.message));
+    let rejeter;
     const echecPrecoce = new Promise((resolve, reject) => {
-        phpServer.once('error', (err) => {
-            reject(new Error('Impossible de lancer le serveur PHP interne : ' + err.message));
-        });
+        rejeter = reject;
+        phpServer.once('error', onErrorPrecoce);
         phpServer.once('exit', (code) => {
             if (code !== 0) {
                 reject(new Error(`Le serveur PHP interne s est arrete de maniere inattendue (code ${code}).`));
@@ -129,7 +156,56 @@ async function startPhpServer() {
         echecPrecoce
     ]);
 
+    // Démarrage réussi : on retire les écouteurs de démarrage et on installe une
+    // SUPERVISION PERMANENTE. Le serveur PHP intégré (« php -S ») est
+    // mono-thread et peut s'arrêter de façon inattendue en cours d'utilisation ;
+    // sans surveillance, la fenêtre reste bloquée sur une page morte et
+    // l'utilisateur est contraint de quitter puis relancer l'application.
+    phpServer.removeListener('error', onErrorPrecoce);
+    phpServer.removeAllListeners('exit');
+    currentServerUrl = url;
+    phpRestartCount = 0;
+    phpServer.on('exit', (code, signal) => {
+        if (isQuitting) return;
+        console.error(`Le serveur PHP interne s'est arrete (code ${code}, signal ${signal}). Tentative de redemarrage...`);
+        redemarrerServeurPhp();
+    });
+
     return url;
+}
+
+/**
+ * Relance le serveur PHP interne après un arrêt inattendu, puis recharge la
+ * fenêtre. Limité à PHP_MAX_RESTARTS tentatives pour éviter une boucle infinie
+ * si le binaire est réellement cassé.
+ */
+async function redemarrerServeurPhp() {
+    if (isQuitting || !mainWindow) return;
+
+    if (phpRestartCount >= PHP_MAX_RESTARTS) {
+        console.error('Nombre maximal de redemarrages du serveur PHP atteint.');
+        if (!mainWindow.isDestroyed()) {
+            dialog.showMessageBox(mainWindow, {
+                type: 'error',
+                title: 'Serveur local indisponible',
+                message: "Le serveur local s'est arrete a plusieurs reprises. Veuillez fermer puis relancer l'application.",
+                buttons: ['Fermer']
+            }).then(() => app.quit());
+        }
+        return;
+    }
+
+    phpRestartCount++;
+    try {
+        const url = await startPhpServer();
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.loadURL(url);
+        }
+    } catch (error) {
+        console.error('Echec du redemarrage du serveur PHP interne:', error);
+        // Nouvelle tentative après un court délai (le port peut se liberer).
+        setTimeout(redemarrerServeurPhp, 1000);
+    }
 }
 
 async function createWindow() {
@@ -175,6 +251,34 @@ async function createWindow() {
             '<p>Verifiez votre antivirus/pare-feu local, puis relancez l application.</p>' +
             '</body></html>'
         ));
+    });
+
+    // Si le processus de rendu se fige (« Ne repond pas ») ou plante, on propose
+    // de recharger au lieu de laisser une fenetre morte que Windows marque comme
+    // bloquee et que l'utilisateur doit fermer de force.
+    mainWindow.webContents.on('unresponsive', () => {
+        if (!mainWindow || mainWindow.isDestroyed()) return;
+        dialog.showMessageBox(mainWindow, {
+            type: 'warning',
+            title: 'Application qui ne repond pas',
+            message: "La page ne repond plus. Voulez-vous la recharger ?",
+            buttons: ['Recharger', 'Attendre']
+        }).then((result) => {
+            if (result.response === 0 && mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.webContents.reload();
+            }
+        });
+    });
+
+    mainWindow.webContents.on('render-process-gone', (event, details) => {
+        console.error('Processus de rendu arrete:', details && details.reason);
+        if (isQuitting || !mainWindow || mainWindow.isDestroyed()) return;
+        // On recharge la derniere URL serveur connue pour retrouver un etat sain.
+        if (currentServerUrl) {
+            mainWindow.loadURL(currentServerUrl);
+        } else {
+            mainWindow.webContents.reload();
+        }
     });
 
     // Tentative de lancement du serveur PHP interne (Priorité absolue)
@@ -230,6 +334,12 @@ async function createWindow() {
         }
     });
 }
+
+// Fermeture volontaire : on l'indique AVANT que php.exe soit tue, afin que la
+// supervision (exit handler) ne tente pas de le relancer.
+app.on('before-quit', function () {
+    isQuitting = true;
+});
 
 app.on('ready', () => {
     createWindow();

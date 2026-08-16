@@ -450,7 +450,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
     } catch (Exception $e) {
-        $message = $e->getMessage();
+        $message = messageErreurUtilisateur($e, "l'enregistrement des impôts");
         $messageType = 'error';
     }
 }
@@ -481,84 +481,7 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
     <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
 </head>
 <body class="bg-slate-100 min-h-screen">
-    <!-- Header -->
-    <header class="bg-primary-800 text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 py-3">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-building text-xl"></i>
-                    <span class="font-bold text-lg">CABINET FISCAL</span>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-primary-200">
-                        Bienvenue, <strong class="text-white"><?= htmlspecialchars($agent->getPrenom() . ' ' . $agent->getNom()) ?></strong> | <?= $agent->getRole() === 'admin' ? 'Administrateur' : 'Agent Comptable' ?>
-                    </span>
-                    <a href="logout.php" class="text-primary-200 hover:text-white">Déconnexion</a>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Sous-header avec breadcrumb et sélecteur de mois -->
-    <div class="bg-white border-b shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 py-3">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center text-sm">
-                    <a href="dashboard.php" class="text-slate-500 hover:text-slate-700">
-                        <i class="fas fa-home mr-1"></i> CABINET FISCAL
-                    </a>
-                    <span class="mx-2 text-slate-400">|</span>
-                    <span class="text-primary-600 font-medium"><?= htmlspecialchars($client->getNom()) ?></span>
-                </div>
-                
-                <!-- Sélecteur de mois -->
-                <div class="flex items-center space-x-2">
-                    <a href="?client=<?= $clientId ?>&mois=<?= $mois == 1 ? 12 : $mois - 1 ?>&annee=<?= $mois == 1 ? $annee - 1 : $annee ?>&type=<?= $typeImpot ?>" 
-                       class="px-2 py-1 bg-slate-100 rounded hover:bg-slate-200" title="Mois précédent">
-                        <i class="fas fa-chevron-left"></i>
-                    </a>
-                    <select onchange="changerMoisImpot(this.value)" class="px-3 py-1 border rounded bg-white text-sm">
-                        <?php for ($m = 1; $m <= 12; $m++): ?>
-                        <option value="<?= $m ?>" <?= $m == $mois ? 'selected' : '' ?>><?= $moisNoms[$m] ?></option>
-                        <?php endfor; ?>
-                    </select>
-                    <select onchange="changerAnneeImpot(this.value)" class="px-3 py-1 border rounded bg-white text-sm">
-                        <?php for ($a = date('Y') - 5; $a <= date('Y') + 5; $a++): ?>
-                        <option value="<?= $a ?>" <?= $a == $annee ? 'selected' : '' ?>><?= $a ?></option>
-                        <?php endfor; ?>
-                    </select>
-                    <a href="?client=<?= $clientId ?>&mois=<?= $mois == 12 ? 1 : $mois + 1 ?>&annee=<?= $mois == 12 ? $annee + 1 : $annee ?>&type=<?= $typeImpot ?>" 
-                       class="px-2 py-1 bg-slate-100 rounded hover:bg-slate-200" title="Mois suivant">
-                        <i class="fas fa-chevron-right"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Navigation par onglets -->
-    <div class="bg-white border-b">
-        <div class="max-w-7xl mx-auto px-4">
-            <nav class="flex space-x-1">
-                <a href="achats.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" 
-                   class="px-4 py-3 text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-50">
-                    ACHATS
-                </a>
-                <a href="depenses.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" 
-                   class="px-4 py-3 text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-50">
-                    DÉPENSES
-                </a>
-                <a href="impots.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" 
-                   class="px-4 py-3 text-sm font-medium text-white bg-primary-600 rounded-t-lg">
-                    IMPÔTS
-                </a>
-                <a href="recapitulatif.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" 
-                   class="px-4 py-3 text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-50">
-                    RÉCAPITULATIF
-                </a>
-            </nav>
-        </div>
-    </div>
+    <?php include APP_ROOT . '/includes/navbar-impots.php'; ?>
 
     <main class="max-w-7xl mx-auto px-4 py-2">
         <!-- Message -->
@@ -620,7 +543,7 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
                             <?php foreach ($margesDisponibles as $i => $m): ?>
                             <label class="marge-btn relative cursor-pointer <?= $i > 0 ? 'border-l border-green-300' : '' ?>">
                                 <input type="radio" name="marge" value="<?= $m ?>" class="sr-only peer" onchange="changerMargeGlobal(<?= $m ?>)" <?= $margeSelectionnee == $m ? 'checked' : '' ?>>
-                                <span class="block px-3 py-2 text-sm font-semibold text-slate-600 bg-white hover:bg-green-50 peer-checked:bg-green-600 peer-checked:text-white transition-all"><?= $m ?></span>
+                                <span class="block px-3 py-2 text-sm font-semibold text-slate-600 bg-white hover:bg-green-50 peer-checked:bg-green-700 peer-checked:text-white transition-all"><?= $m ?></span>
                             </label>
                             <?php endforeach; ?>
                             <div class="flex items-center bg-white px-2 border-l border-green-300">
@@ -1854,28 +1777,6 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
         if (form) form.submit();
     }
     
-    function changerMoisImpot(m) {
-        const url = new URL(window.location.href);
-        url.searchParams.set('mois', m);
-        url.searchParams.delete('masse_salariale');
-        url.searchParams.delete('loyers_percus');
-        url.searchParams.delete('its');
-        url.searchParams.delete('marge');
-        url.searchParams.delete('marge_taxable');
-        window.location.href = url.toString();
-    }
-    
-    function changerAnneeImpot(a) {
-        const url = new URL(window.location.href);
-        url.searchParams.set('annee', a);
-        url.searchParams.delete('masse_salariale');
-        url.searchParams.delete('loyers_percus');
-        url.searchParams.delete('its');
-        url.searchParams.delete('marge');
-        url.searchParams.delete('marge_taxable');
-        window.location.href = url.toString();
-    }
-
     function recalcTVA() {
         const tauxTVA = <?= $tauxTVA ?>;
         const tauxTVADouble = <?= $tauxTVADouble ? 'true' : 'false' ?>;

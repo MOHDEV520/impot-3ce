@@ -197,62 +197,11 @@ $pageTitle = "Historique des Achats - " . htmlspecialchars($client['nom']);
     </script>
 </head>
 <body class="bg-slate-100 min-h-screen">
-    <!-- Header -->
-    <header class="bg-primary-800 text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 py-3">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-building text-xl"></i>
-                    <span class="font-bold text-lg">CABINET FISCAL</span>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-primary-200">
-                        Bienvenue, <strong class="text-white"><?= htmlspecialchars($agent->getPrenom() . ' ' . $agent->getNom()) ?></strong> | <?= $agent->getRole() === 'admin' ? 'Administrateur' : 'Agent Comptable' ?>
-                    </span>
-                    <a href="logout.php" class="text-primary-200 hover:text-white">Déconnexion</a>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Breadcrumb -->
-    <div class="bg-slate-200 border-b">
-        <div class="max-w-7xl mx-auto px-4 py-2">
-            <div class="flex items-center text-sm text-slate-600">
-                <a href="dashboard.php" class="hover:text-primary-600">
-                    <i class="fas fa-home mr-1"></i> CABINET FISCAL
-                </a>
-                <span class="mx-2">|</span>
-                <span class="font-medium text-primary-600"><?= htmlspecialchars($client['nom']) ?></span>
-                <span class="mx-2">|</span>
-                <span>Historique des Achats</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Navigation Tabs -->
-    <nav class="bg-white border-b shadow-sm">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex space-x-1">
-                <a href="achats.php?client=<?= $clientId ?>&mois=<?= $moisCourant ?>&annee=<?= $anneeCourant ?>" 
-                   class="px-6 py-3 text-sm font-medium text-slate-600 hover:text-primary-600 hover:bg-slate-50 border-b-2 border-transparent">
-                    ACHATS
-                </a>
-                <a href="depenses.php?client=<?= $clientId ?>&mois=<?= $moisCourant ?>&annee=<?= $anneeCourant ?>" 
-                   class="px-6 py-3 text-sm font-medium text-slate-600 hover:text-primary-600 hover:bg-slate-50 border-b-2 border-transparent">
-                    DÉPENSES
-                </a>
-                <a href="impots.php?client=<?= $clientId ?>&mois=<?= $moisCourant ?>&annee=<?= $anneeCourant ?>" 
-                   class="px-6 py-3 text-sm font-medium text-white bg-primary-600 border-b-2 border-primary-600">
-                    IMPÔTS
-                </a>
-                <a href="recapitulatif.php?client=<?= $clientId ?>&mois=<?= $moisCourant ?>&annee=<?= $anneeCourant ?>" 
-                   class="px-6 py-3 text-sm font-medium text-slate-600 hover:text-primary-600 hover:bg-slate-50 border-b-2 border-transparent">
-                    RÉCAPITULATIF
-                </a>
-            </div>
-        </div>
-    </nav>
+    <?php
+    $mois = $moisCourant ?? null;
+    $annee = $anneeCourant ?? null;
+    include APP_ROOT . '/includes/navbar-impots.php';
+    ?>
 
     <main class="max-w-7xl mx-auto px-4 py-6">
 

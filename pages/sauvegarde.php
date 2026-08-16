@@ -283,7 +283,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 break;
         }
     } catch (Exception $e) {
-        $message = $e->getMessage();
+        $message = messageErreurUtilisateur($e, "cette opération de maintenance");
         $messageType = 'error';
     }
 }
@@ -441,7 +441,7 @@ function formatSize($bytes) {
                     </div>
                     
                     <input type="hidden" name="action" value="backup">
-                    <button type="submit" class="px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors shadow-sm">
+                    <button type="submit" class="px-6 py-2 bg-green-700 text-white font-medium rounded-lg hover:bg-green-800 transition-colors shadow-sm">
                         <i class="fas fa-download mr-2"></i> Sauvegarder .sqlite
                     </button>
                 </div>
@@ -510,7 +510,7 @@ function formatSize($bytes) {
                             </div>
                         </div>
                         
-                        <button type="submit" class="w-full py-2.5 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors text-sm">
+                        <button type="submit" class="w-full py-2.5 bg-green-700 text-white font-medium rounded-lg hover:bg-green-800 transition-colors text-sm">
                             <i class="fas fa-file-export mr-2"></i> Exporter en fichier .json
                         </button>
                     </form>
@@ -669,7 +669,7 @@ function formatSize($bytes) {
                 <form method="POST" class="flex-1">
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                     <input type="hidden" name="action" value="confirm_transfer">
-                    <button type="submit" class="w-full py-2.5 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition-colors">
+                    <button type="submit" class="w-full py-2.5 bg-green-700 text-white font-bold rounded-lg hover:bg-green-800 transition-colors">
                         <i class="fas fa-check-circle mr-2"></i> Confirmer l'importation
                     </button>
                 </form>
@@ -878,7 +878,7 @@ function formatSize($bytes) {
                             class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
                         Annuler
                     </button>
-                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                    <button type="submit" class="px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800">
                         <i class="fas fa-undo mr-1"></i> Restaurer
                     </button>
                 </div>

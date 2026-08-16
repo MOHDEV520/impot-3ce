@@ -37,3 +37,5 @@ Thumbs.db
 
 # Fichiers temporaires de transfert
 transfer_*.json
+.impeccable/
+.superpowers/

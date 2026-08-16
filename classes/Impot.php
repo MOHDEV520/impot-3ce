@@ -329,6 +329,8 @@ class ImpotSalaire extends Impot
     private float $its = 0;     // Impôt sur Traitements et Salaires
     private float $tl = 0;      // Taxe de Logement 1%
     private float $masseSalariale = 0;
+    private float $tauxCF = 3.5;
+    private float $tauxTL = 1.0;
 
     public function getNom(): string
     {
@@ -359,14 +361,16 @@ class ImpotSalaire extends Impot
             return 0;
         }
 
-        // CF : 3.5% de la masse salariale
-        $this->cf = round($this->masseSalariale * 3.5 / 100, 2);
+        // CF : taux du client (3,5 % par défaut) sur la masse salariale
+        $this->tauxCF = (float) ($params['taux_cf'] ?? 3.5);
+        $this->cf = round($this->masseSalariale * $this->tauxCF / 100, 2);
 
         // ITS : selon barème (simplifié ici - estimation à 10%)
         $this->its = $this->calculerITS($this->masseSalariale);
 
-        // TL : 1% de la masse salariale
-        $this->tl = round($this->masseSalariale * 1 / 100, 2);
+        // TL : taux du client (1 % par défaut) sur la masse salariale
+        $this->tauxTL = (float) ($params['taux_tl'] ?? 1.0);
+        $this->tl = round($this->masseSalariale * $this->tauxTL / 100, 2);
 
         $this->montant = $this->cf + $this->its + $this->tl;
         return $this->montant;
@@ -428,15 +432,25 @@ class ImpotSalaire extends Impot
         return $this->masseSalariale;
     }
 
+    public function getTauxCF(): float
+    {
+        return $this->tauxCF;
+    }
+
+    public function getTauxTL(): float
+    {
+        return $this->tauxTL;
+    }
+
     public function toArray(): array
     {
         return array_merge(parent::toArray(), [
             'masse_salariale' => $this->masseSalariale,
             'cf' => $this->cf,
-            'cf_taux' => 3.5,
+            'cf_taux' => $this->tauxCF,
             'its' => $this->its,
             'tl' => $this->tl,
-            'tl_taux' => 1
+            'tl_taux' => $this->tauxTL
         ]);
     }
 }
@@ -453,6 +467,8 @@ class ImpotLocation extends Impot
     private float $tvaLocation = 0; // TVA sur location 18%
     private float $tf = 0;          // Taxe Foncière 3%
     private float $valeurLocative = 0;
+    private float $tauxIRF = 12.0;
+    private float $tauxTF = 3.0;
 
     public function getNom(): string
     {
@@ -486,14 +502,16 @@ class ImpotLocation extends Impot
             return 0;
         }
 
-        // IRF : 12% (seulement si irf_tf_actif)
-        $this->irf = $irfTfActif ? round($this->valeurLocative * 12 / 100, 2) : 0;
+        // IRF : taux du client (12 % par défaut), seulement si irf_tf_actif
+        $this->tauxIRF = (float) ($params['taux_irf'] ?? 12.0);
+        $this->irf = $irfTfActif ? round($this->valeurLocative * $this->tauxIRF / 100, 2) : 0;
 
         // TVA sur location : 18% (seulement si location_actif)
         $this->tvaLocation = $locationActif ? round($this->valeurLocative * 18 / 100, 2) : 0;
 
-        // TF : 3% (seulement si irf_tf_actif)
-        $this->tf = $irfTfActif ? round($this->valeurLocative * 3 / 100, 2) : 0;
+        // TF : taux du client (3 % par défaut), seulement si irf_tf_actif
+        $this->tauxTF = (float) ($params['taux_tf'] ?? 3.0);
+        $this->tf = $irfTfActif ? round($this->valeurLocative * $this->tauxTF / 100, 2) : 0;
 
         $this->montant = $this->irf + $this->tvaLocation + $this->tf;
         return $this->montant;
@@ -520,16 +538,26 @@ class ImpotLocation extends Impot
         return $this->valeurLocative;
     }
 
+    public function getTauxIRF(): float
+    {
+        return $this->tauxIRF;
+    }
+
+    public function getTauxTF(): float
+    {
+        return $this->tauxTF;
+    }
+
     public function toArray(): array
     {
         return array_merge(parent::toArray(), [
             'valeur_locative' => $this->valeurLocative,
             'irf' => $this->irf,
-            'irf_taux' => 12,
+            'irf_taux' => $this->tauxIRF,
             'tva_location' => $this->tvaLocation,
             'tva_location_taux' => 18,
             'tf' => $this->tf,
-            'tf_taux' => 3
+            'tf_taux' => $this->tauxTF
         ]);
     }
 }
@@ -567,14 +595,14 @@ class ImpotCA extends Impot
         }
 
         $this->base = (float) $compte['ca_global'];
-        $this->taux = 0.5;
+        $this->taux = (float) ($params['taux_css'] ?? 0.5);
 
         if ($this->base <= 0) {
             return 0;
         }
 
-        // CSS : 0.5% du CA
-        $this->css = round($this->base * 0.5 / 100, 2);
+        // CSS : taux du client (0,5 % par défaut) sur le CA
+        $this->css = round($this->base * $this->taux / 100, 2);
         $this->montant = $this->css;
 
         return $this->montant;

@@ -291,7 +291,7 @@ $pageTitle = "Déclaration TVA - " . $moisNoms[$mois] . " " . $annee;
 
         <!-- Section 2 : Calcul TVA -->
         <div class="bg-white rounded-lg shadow mb-6 overflow-hidden">
-            <div class="bg-green-600 text-white px-6 py-3">
+            <div class="bg-green-700 text-white px-6 py-3">
                 <h2 class="text-lg font-semibold">SECTION II - CALCUL DE LA TVA</h2>
             </div>
             

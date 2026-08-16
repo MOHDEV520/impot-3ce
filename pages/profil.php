@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = "Profil mis à jour."; 
             }
         } catch (Exception $e) {
-            $erreur = $e->getMessage();
+            $erreur = messageErreurUtilisateur($e, "la mise à jour du profil");
         }
     } elseif ($action === 'update_password') {
         $ancienMdp = $_POST['ancien_mdp'] ?? '';
@@ -97,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $erreur = "Erreur lors du changement de mot de passe.";
             }
         } catch (Exception $e) {
-            $erreur = $e->getMessage();
+            $erreur = messageErreurUtilisateur($e, "le changement de mot de passe");
         }
     }
 }
@@ -125,41 +125,10 @@ $nbComplets = $db->fetchColumn("
     $agent->getRole() !== 'admin' ? [$moisActuel, $anneeActuelle, $agent->getId()] : [$moisActuel, $anneeActuelle]
 );
 
-$pageTitle = "Mon Profil - " . $agent->getNomComplet();
+$titrePage = "Mon profil";
+require_once APP_ROOT . '/includes/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $pageTitle ?></title>
-    <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
-</head>
-<body class="bg-slate-100 min-h-screen">
-    <!-- Header simple -->
-    <header class="bg-primary-800 text-white shadow-lg no-print">
-        <div class="max-w-7xl mx-auto px-4 py-3">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <a href="dashboard.php" class="flex items-center space-x-2 hover:text-primary-200 transition-colors">
-                        <i class="fas fa-building text-xl"></i>
-                        <span class="font-bold text-lg text-white">CABINET FISCAL</span>
-                    </a>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-primary-200 hidden md:inline">
-                        Agent: <strong class="text-white"><?= htmlspecialchars($agent->getNomComplet()) ?></strong>
-                    </span>
-                    <a href="logout.php" class="text-primary-200 hover:text-white flex items-center">
-                        <i class="fas fa-sign-out-alt mr-1"></i> Déconnexion
-                    </a>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <main class="max-w-4xl mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
         <!-- Fil d'ariane -->
         <nav class="flex mb-6 text-sm">
             <a href="dashboard.php" class="text-slate-500 hover:text-primary-600 flex items-center">
@@ -411,6 +380,5 @@ $pageTitle = "Mon Profil - " . $agent->getNomComplet();
                 <p>Pour des raisons de sécurité, nous vous recommandons de ne pas partager vos identifiants et de choisir un mot de passe complexe mêlant lettres, chiffres et caractères spéciaux.</p>
             </div>
         </div>
-    </main>
-</body>
-</html>
+    </div>
+<?php require_once APP_ROOT . '/includes/footer.php'; ?>

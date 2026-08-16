@@ -9,10 +9,11 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Palette 3CE FISCUS — dérivée de l'encre du logo (#1d3a5f)
         primary: {
-          50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd',
-          400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8',
-          800: '#1e40af', 900: '#1e3a8a',
+          50: '#f3f7fb', 100: '#e4edf6', 200: '#c6d9eb', 300: '#9abcd9',
+          400: '#6796c1', 500: '#4577a8', 600: '#345f8d', 700: '#2a4c74',
+          800: '#1d3a5f', 900: '#1a3150',
         }
       }
     },

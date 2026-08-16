@@ -13,6 +13,7 @@ require_once APP_ROOT . '/config/database.php';
 require_once APP_ROOT . '/classes/Agent.php';
 require_once APP_ROOT . '/classes/Client.php';
 require_once APP_ROOT . '/classes/Impot.php';
+require_once APP_ROOT . '/classes/CompteGestionMensuel.php';
 
 // Vérifier l'authentification
 if (!Agent::estConnecte() || !Agent::verifierTimeout()) {
@@ -72,19 +73,12 @@ $dateLimiteMoisPrecedent = Impot::calculerDateLimite($moisPrecedent, $anneePrece
 $estApresLimite = ($dateAujourdhui > $dateLimiteMoisPrecedent);
 
 foreach ($clients as &$client) {
-    // État du mois en cours
-    $etat = $client['etat_mois'] ?? 'non_saisi';
-    
-    if ($etat === 'valide' || $etat === 'verrouille') {
-        $client['etat_label'] = 'Complet';
-        $client['etat_class'] = 'bg-green-500';
+    // État du mois en cours — source unique de vérité, partagée avec clients.php
+    $etatAffichage = CompteGestionMensuel::getEtatAffichage($client['etat_mois'] ?? null);
+    $client['etat_label'] = $etatAffichage['label'];
+    $client['etat_class'] = $etatAffichage['classePoint'];
+    if ($etatAffichage['label'] === 'Complet') {
         $clientsComplets++;
-    } elseif ($etat === 'en_preparation' || $etat === 'pret_declaration') {
-        $client['etat_label'] = 'En cours';
-        $client['etat_class'] = 'bg-amber-500';
-    } else {
-        $client['etat_label'] = 'Incomplet';
-        $client['etat_class'] = 'bg-slate-400';
     }
 
     // Vérifier si en retard sur le mois PRÉCÉDENT
@@ -108,43 +102,9 @@ unset($client);
 // Limiter aux 5 derniers clients pour l'affichage
 $clientsRecents = array_slice($clients, 0, 5);
 
-$pageTitle = "Accueil - Tableau de bord";
+$titrePage = "Tableau de bord";
+require_once APP_ROOT . '/includes/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $pageTitle ?></title>
-    <link rel="stylesheet" href="../assets/css/style.css?v=1.2">
-    <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
-</head>
-<body class="bg-slate-100 min-h-screen">
-    <!-- Header -->
-    <header class="bg-primary-900 text-white shadow-xl no-print border-b border-primary-800">
-        <div class="max-w-7xl mx-auto px-4 py-3">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-white rounded flex items-center justify-center p-1 shadow-inner">
-                        <img src="../assets/img/logo.png" alt="3CE FISCUS" class="w-full h-full object-contain">
-                    </div>
-                    <span class="font-bold text-xl tracking-wider text-white">3CE FISCUS</span>
-                </div>
-                <div class="flex items-center space-x-6">
-                    <div class="hidden md:flex flex-col items-end">
-                        <span class="text-xs text-primary-300 uppercase tracking-tighter">Session active</span>
-                        <strong class="text-sm font-bold"><?= htmlspecialchars($agent->getPrenom() . ' ' . $agent->getNom()) ?></strong>
-                    </div>
-                    <div class="h-8 w-px bg-primary-700 hidden md:block"></div>
-                    <a href="logout.php" class="flex items-center px-4 py-2 bg-red-600/20 hover:bg-red-600 text-red-100 font-bold rounded-lg transition-all border border-red-500/30">
-                        <i class="fas fa-sign-out-alt mr-2"></i> Déconnexion
-                    </a>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <main class="max-w-7xl mx-auto px-4 py-8">
         <div class="flex items-center justify-between mb-8">
             <h1 class="text-2xl font-bold text-slate-800">Accueil de l'agent</h1>
             <div class="bg-amber-100 border border-amber-200 px-4 py-2 rounded-lg flex items-center shadow-sm">
@@ -177,7 +137,7 @@ $pageTitle = "Accueil - Tableau de bord";
                 </div>
 
                 <!-- KPIs -->
-                <div class="flex space-x-4">
+                <div class="flex flex-wrap gap-4">
                     <!-- Nombre de clients -->
                     <div class="card-stat card-stat-accent text-center">
                         <div class="card-stat-label">Nombre de clients</div>
@@ -284,6 +244,4 @@ $pageTitle = "Accueil - Tableau de bord";
                 </a>
             </div>
         </div>
-    </main>
-</body>
-</html>
+<?php require_once APP_ROOT . '/includes/footer.php'; ?>

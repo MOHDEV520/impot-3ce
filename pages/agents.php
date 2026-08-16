@@ -101,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 break;
         }
     } catch (Exception $e) {
-        $message = $e->getMessage();
+        $message = messageErreurUtilisateur($e, "cette action sur l'agent");
         $messageType = 'error';
     }
 }

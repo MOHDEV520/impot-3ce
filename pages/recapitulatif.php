@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $message = "Le mois de " . ($moisNomsTmp[$mois] ?? $mois) . " $annee a été validé avec succès.";
             }
         } catch (Exception $e) {
-            $message = "Erreur: " . $e->getMessage();
+            $message = messageErreurUtilisateur($e, "la validation de ce mois");
             $messageType = 'error';
         }
     }
@@ -286,22 +286,6 @@ $pageTitle = "Récapitulatif - " . htmlspecialchars($client['nom']);
     <?php include APP_ROOT . '/includes/navbar-impots.php'; ?>
 
     <main class="max-w-7xl mx-auto px-4 py-6">
-        <!-- Message d'avertissement Electron -->
-        <?php if ($compteGestion['statut'] !== 'valide' && $compteGestion['statut'] !== 'verrouille'): ?>
-        <div class="mb-6 bg-blue-50 border-l-4 border-blue-400 p-4 shadow-sm no-print">
-            <div class="flex">
-                <div class="shrink-0">
-                    <i class="fas fa-info-circle text-blue-400"></i>
-                </div>
-                <div class="ml-3">
-                    <p class="text-sm text-blue-700">
-                        <strong>Conseil Migration :</strong> Il est recommandé de <strong>Valider</strong> chaque mois terminé avant de passer à l'application Desktop (Electron). La validation fige les calculs et facilite l'export des données.
-                    </p>
-                </div>
-            </div>
-        </div>
-        <?php endif; ?>
-
         <!-- Message -->
         <?php if ($message): ?>
         <div class="mb-4 p-4 rounded-lg <?= $messageType === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700' ?>">
@@ -340,28 +324,77 @@ $pageTitle = "Récapitulatif - " . htmlspecialchars($client['nom']);
                 </div>
                 <div class="text-right no-print flex items-center space-x-2">
                     <?php if ($compteGestion['statut'] !== 'valide' && $compteGestion['statut'] !== 'verrouille'): ?>
-                    <form method="POST" onsubmit="return confirm('Voulez-vous valider ce mois ? Cela marquera le dossier comme prêt pour la déclaration.')">
-                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
-                        <input type="hidden" name="action" value="valider_mois">
-                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                            <i class="fas fa-check mr-2"></i> VALIDER CE MOIS
-                        </button>
-                    </form>
+                    <button type="button" onclick="ouvrirModalValidation()" class="inline-flex items-center px-4 py-2.5 bg-green-700 text-white font-semibold rounded-lg hover:bg-green-800 shadow-sm">
+                        <i class="fas fa-check mr-2"></i> VALIDER CE MOIS
+                    </button>
                     <?php endif; ?>
-                    <a href="annexe-tva.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" class="inline-flex items-center px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700">
-                        <i class="fas fa-file-alt mr-2"></i> Annexe TVA
+                    <div class="h-8 w-px bg-slate-200"></div>
+                    <a href="annexe-tva.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" class="inline-flex items-center px-3 py-2 text-sm text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50" title="Annexe TVA">
+                        <i class="fas fa-file-alt mr-2 text-amber-600"></i> Annexe TVA
                     </a>
-                    <a href="annexe-exoneration.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-                        <i class="fas fa-file-alt mr-2"></i> Annexe Exonération
+                    <a href="annexe-exoneration.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" class="inline-flex items-center px-3 py-2 text-sm text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50" title="Annexe Exonération">
+                        <i class="fas fa-file-alt mr-2 text-purple-600"></i> Exonération
                     </a>
-                    <a href="recap-paiements.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-                        <i class="fas fa-file-pdf mr-2"></i> Récap Paiements
+                    <a href="recap-paiements.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" class="inline-flex items-center px-3 py-2 text-sm text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50" title="Récap Paiements">
+                        <i class="fas fa-file-pdf mr-2 text-red-600"></i> Paiements
                     </a>
-                    <button onclick="window.print()" class="inline-flex items-center px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700">
-                        <i class="fas fa-print mr-2"></i> Imprimer
+                    <button onclick="window.print()" class="inline-flex items-center px-3 py-2 text-sm text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50" title="Imprimer">
+                        <i class="fas fa-print"></i>
                     </button>
                 </div>
             </div>
+
+            <?php if ($compteGestion['statut'] !== 'valide' && $compteGestion['statut'] !== 'verrouille'): ?>
+            <!-- Dialog de validation du mois : montants figés listés explicitement -->
+            <div id="modalValidation" class="hidden fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4 no-print"
+                 role="dialog" aria-modal="true" aria-labelledby="titreModalValidation">
+                <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+                    <h2 id="titreModalValidation" class="text-lg font-bold text-slate-800 mb-1">
+                        <i class="fas fa-check-circle text-green-700 mr-2"></i>Valider <?= $moisNoms[$mois] ?> <?= $annee ?> ?
+                    </h2>
+                    <p class="text-sm text-slate-500 mb-4">
+                        Les montants ci-dessous seront figés pour <strong><?= htmlspecialchars($client['nom']) ?></strong>.
+                        Le dossier passera au statut « Validé ».
+                    </p>
+                    <dl class="bg-slate-50 rounded-lg p-4 mb-5 space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <dt class="text-slate-500">Chiffre d'affaires global</dt>
+                            <dd class="font-semibold text-slate-800"><?= formatMontant($caGlobal) ?> F</dd>
+                        </div>
+                        <div class="flex justify-between border-t border-slate-200 pt-2">
+                            <dt class="text-slate-700 font-medium">Total des impôts du mois</dt>
+                            <dd class="font-bold text-primary-700"><?= formatMontant($totalImpots) ?> F</dd>
+                        </div>
+                    </dl>
+                    <p class="text-xs text-slate-400 mb-4">
+                        <i class="fas fa-info-circle mr-1"></i>Un administrateur peut annuler cette validation depuis la fiche client si besoin.
+                    </p>
+                    <div class="flex justify-end space-x-2">
+                        <button type="button" onclick="fermerModalValidation()" class="px-4 py-2 text-slate-600 rounded-lg hover:bg-slate-100">
+                            Annuler
+                        </button>
+                        <form method="POST">
+                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
+                            <input type="hidden" name="action" value="valider_mois">
+                            <button type="submit" class="px-4 py-2 bg-green-700 text-white font-semibold rounded-lg hover:bg-green-800">
+                                Confirmer la validation
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <script>
+                function ouvrirModalValidation() {
+                    const m = document.getElementById('modalValidation');
+                    m.classList.remove('hidden');
+                    const premier = m.querySelector('button, a, [tabindex]');
+                    if (premier) premier.focus();
+                }
+                function fermerModalValidation() {
+                    document.getElementById('modalValidation').classList.add('hidden');
+                }
+            </script>
+            <?php endif; ?>
             
             <!-- Cartes résumé -->
             <div class="grid grid-cols-4 gap-3">
@@ -387,7 +420,7 @@ $pageTitle = "Récapitulatif - " . htmlspecialchars($client['nom']);
 
         <!-- ========== 2. CHIFFRE D'AFFAIRES ========== -->
         <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-4 section-box">
-            <div class="bg-green-600 text-white px-4 py-2 section-header">
+            <div class="bg-green-700 text-white px-4 py-2 section-header">
                 <i class="fas fa-chart-line mr-2"></i> CHIFFRE D'AFFAIRES
             </div>
             <div class="p-4">
@@ -736,7 +769,7 @@ $pageTitle = "Récapitulatif - " . htmlspecialchars($client['nom']);
         
         <!-- Pied de page impression -->
         <div class="print-footer" style="margin-top:20px; padding-top:10px; border-top:1px solid #ddd; font-size:8pt; color:#888; text-align:center;">
-            CABINET FISCAL - Système de Gestion Fiscale | Généré le <?= $dateGeneration ?> | Page 1/1
+            3CE FISCUS - Système de Gestion Fiscale | Généré le <?= $dateGeneration ?> | Page 1/1
         </div>
 
         <!-- Liens (non imprimé) -->

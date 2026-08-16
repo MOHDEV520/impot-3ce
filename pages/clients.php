@@ -13,6 +13,7 @@ require_once APP_ROOT . '/config/database.php';
 require_once APP_ROOT . '/classes/Agent.php';
 require_once APP_ROOT . '/classes/Client.php';
 require_once APP_ROOT . '/classes/Impot.php';
+require_once APP_ROOT . '/classes/CompteGestionMensuel.php';
 
 // Vérifier l'authentification
 if (!Agent::estConnecte() || !Agent::verifierTimeout()) {
@@ -67,21 +68,12 @@ $clients = $db->fetchAll($sql, $params);
 // Activités (simplifié - pas de colonne activite dans la table)
 $activites = [];
 
-// Traiter les états
+// Traiter les états — source unique de vérité, partagée avec dashboard.php
 foreach ($clients as &$client) {
-    $etat = $client['etat_mois'] ?? 'non_saisi';
-    
-    if ($etat === 'valide' || $etat === 'verrouille') {
-        $client['etat_label'] = 'Complet';
-        $client['etat_class'] = 'bg-green-500';
-    } elseif ($etat === 'en_cours' || $etat === 'pret') {
-        $client['etat_label'] = 'En cours';
-        $client['etat_class'] = 'bg-amber-500';
-    } else {
-        $client['etat_label'] = 'Incomplet';
-        $client['etat_class'] = 'bg-red-500';
-    }
-    
+    $etatAffichage = CompteGestionMensuel::getEtatAffichage($client['etat_mois'] ?? null);
+    $client['etat_label'] = $etatAffichage['label'];
+    $client['etat_class'] = $etatAffichage['classeBadge'];
+
     // Formater la date
     if ($client['derniere_action']) {
         $client['derniere_action_formatted'] = date('d/m/Y', strtotime($client['derniere_action']));
@@ -101,38 +93,10 @@ if (!empty($filtreEtat)) {
     });
 }
 
-$pageTitle = "Liste des Clients";
+$titrePage = "Clients";
+require_once APP_ROOT . '/includes/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $pageTitle ?></title>
-    <link rel="stylesheet" href="../assets/css/style.css?v=1.2">
-    <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
-</head>
-<body class="bg-slate-100 min-h-screen">
-    <!-- Header -->
-    <header class="bg-primary-800 text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 py-3">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-building text-xl"></i>
-                    <span class="font-bold text-lg">CABINET FISCAL</span>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-primary-200">
-                        Bienvenue, <strong class="text-white"><?= htmlspecialchars($agent->getPrenom() . ' ' . $agent->getNom()) ?></strong> | <?= $agent->getRole() === 'admin' ? 'Administrateur' : 'Agent Comptable' ?>
-                    </span>
-                    <a href="logout.php" class="text-primary-200 hover:text-white">Déconnexion</a>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <main class="max-w-7xl mx-auto px-4 py-8">
-        <?php 
+        <?php
         // Afficher les messages
         $msg = $_GET['msg'] ?? '';
         $msgType = $_GET['type'] ?? 'info';
@@ -235,7 +199,7 @@ $pageTitle = "Liste des Clients";
                             <?= $moisNoms[$moisActuel] ?> <?= $anneeActuelle ?>
                         </td>
                         <td class="px-4 py-4 text-center">
-                            <span class="badge text-white text-sm <?= $client['etat_class'] ?>">
+                            <span class="badge text-sm <?= $client['etat_class'] ?>">
                                 <?= $client['etat_label'] ?>
                             </span>
                         </td>
@@ -268,12 +232,4 @@ $pageTitle = "Liste des Clients";
             </table>
         </div>
 
-        <!-- Lien retour au dashboard -->
-        <div class="mt-6 text-center">
-            <a href="dashboard.php" class="inline-flex items-center text-slate-600 hover:text-primary-600">
-                <i class="fas fa-chevron-left mr-2"></i> Retour au tableau de bord
-            </a>
-        </div>
-    </main>
-</body>
-</html>
+<?php require_once APP_ROOT . '/includes/footer.php'; ?>

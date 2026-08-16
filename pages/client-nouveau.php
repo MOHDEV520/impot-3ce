@@ -138,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             }
         } catch (Exception $e) {
-            $erreurs['general'] = $e->getMessage();
+            $erreurs['general'] = messageErreurUtilisateur($e, "la création de ce client");
         }
     }
 }

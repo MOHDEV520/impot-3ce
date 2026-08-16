@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = "Service ajouté à l'annexe TVA.";
                 $messageType = "success";
             } catch (Exception $e) {
-                $message = "Erreur: " . $e->getMessage();
+                $message = messageErreurUtilisateur($e, "l'ajout de ce service");
                 $messageType = "error";
             }
         } else {

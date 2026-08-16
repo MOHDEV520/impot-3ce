@@ -161,7 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             }
         } catch (Exception $e) {
-            $erreurs['general'] = $e->getMessage();
+            $erreurs['general'] = messageErreurUtilisateur($e, "la modification de ce client");
         }
     }
 }
@@ -491,7 +491,7 @@ $typesActivite = Client::getTypesActivite();
             
             <!-- Boutons -->
             <div class="flex justify-between">
-                <button type="button" onclick="confirmDelete()" class="px-6 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors">
+                <button type="button" onclick="confirmDelete()" class="px-6 py-2 bg-red-700 text-white font-medium rounded-lg hover:bg-red-800 transition-colors">
                     <i class="fas fa-trash mr-2"></i> Supprimer
                 </button>
                 <div class="flex space-x-4">

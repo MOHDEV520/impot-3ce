@@ -56,6 +56,6 @@ try {
         header('Location: clients.php?msg=' . urlencode('Erreur lors de la suppression') . '&type=error');
     }
 } catch (Exception $e) {
-    header('Location: clients.php?msg=' . urlencode($e->getMessage()) . '&type=error');
+    header('Location: clients.php?msg=' . urlencode(messageErreurUtilisateur($e, "la suppression de ce client")) . '&type=error');
 }
 exit;

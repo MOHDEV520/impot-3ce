@@ -114,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = "Dépense ajoutée avec succès.";
                 $messageType = "success";
             } catch (Exception $e) {
-                $message = "Erreur lors de l'ajout: " . $e->getMessage();
+                $message = messageErreurUtilisateur($e, "l'ajout de cette dépense");
                 $messageType = "error";
             }
         } else {
@@ -138,12 +138,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = "Dépense modifiée avec succès.";
                 $messageType = "success";
             } catch (Exception $e) {
-                $message = "Erreur lors de la modification: " . $e->getMessage();
+                $message = messageErreurUtilisateur($e, "la modification de cette dépense");
                 $messageType = "error";
             }
         }
     }
-    
+
     if ($action === 'supprimer') {
         $depenseId = (int)($_POST['depense_id'] ?? 0);
         if ($depenseId > 0) {
@@ -187,7 +187,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $naturesDepenses = $db->fetchAll("SELECT * FROM natures_depenses ORDER BY ordre_affichage");
                 }
             } catch (Exception $e) {
-                $message = "Erreur lors de la création: " . $e->getMessage();
+                $message = messageErreurUtilisateur($e, "la création de cette nature de dépense");
                 $messageType = "error";
             }
         } else {
@@ -226,84 +226,7 @@ $pageTitle = "Gestion des Dépenses - " . htmlspecialchars($client['nom']);
     <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
 </head>
 <body class="bg-slate-100 min-h-screen">
-    <!-- Header -->
-    <header class="bg-primary-800 text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 py-3">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-building text-xl"></i>
-                    <span class="font-bold text-lg">CABINET FISCAL</span>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-primary-200">
-                        Bienvenue, <strong class="text-white"><?= htmlspecialchars($agent->getPrenom() . ' ' . $agent->getNom()) ?></strong> | <?= $agent->getRole() === 'admin' ? 'Administrateur' : 'Agent Comptable' ?>
-                    </span>
-                    <a href="logout.php" class="text-primary-200 hover:text-white">Déconnexion</a>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Breadcrumb et sélecteur de mois -->
-    <div class="bg-slate-200 border-b">
-        <div class="max-w-7xl mx-auto px-4 py-2">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center text-sm text-slate-600">
-                    <a href="dashboard.php" class="hover:text-primary-600">
-                        <i class="fas fa-home mr-1"></i> CABINET FISCAL
-                    </a>
-                    <span class="mx-2">|</span>
-                    <span class="font-medium text-primary-600"><?= htmlspecialchars($client['nom']) ?></span>
-                </div>
-                
-                <!-- Sélecteur de mois -->
-                <div class="flex items-center space-x-2">
-                    <a href="?client=<?= $clientId ?>&mois=<?= $mois == 1 ? 12 : $mois - 1 ?>&annee=<?= $mois == 1 ? $annee - 1 : $annee ?>" 
-                       class="px-2 py-1 bg-white rounded hover:bg-slate-100" title="Mois précédent">
-                        <i class="fas fa-chevron-left"></i>
-                    </a>
-                    <select onchange="changerMois(this.value)" class="px-3 py-1 border rounded bg-white text-sm">
-                        <?php for ($m = 1; $m <= 12; $m++): ?>
-                        <option value="<?= $m ?>" <?= $m == $mois ? 'selected' : '' ?>><?= $moisNoms[$m] ?></option>
-                        <?php endfor; ?>
-                    </select>
-                    <select onchange="changerAnnee(this.value)" class="px-3 py-1 border rounded bg-white text-sm">
-                        <?php for ($a = date('Y') - 5; $a <= date('Y') + 5; $a++): ?>
-                        <option value="<?= $a ?>" <?= $a == $annee ? 'selected' : '' ?>><?= $a ?></option>
-                        <?php endfor; ?>
-                    </select>
-                    <a href="?client=<?= $clientId ?>&mois=<?= $mois == 12 ? 1 : $mois + 1 ?>&annee=<?= $mois == 12 ? $annee + 1 : $annee ?>" 
-                       class="px-2 py-1 bg-white rounded hover:bg-slate-100" title="Mois suivant">
-                        <i class="fas fa-chevron-right"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Navigation Tabs -->
-    <nav class="bg-white border-b shadow-sm">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex space-x-1">
-                <a href="achats.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" 
-                   class="px-6 py-3 text-sm font-medium text-slate-600 hover:text-primary-600 hover:bg-slate-50 border-b-2 border-transparent">
-                    ACHATS
-                </a>
-                <a href="depenses.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" 
-                   class="px-6 py-3 text-sm font-medium text-white bg-primary-600 border-b-2 border-primary-600">
-                    DÉPENSES
-                </a>
-                <a href="impots.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" 
-                   class="px-6 py-3 text-sm font-medium text-slate-600 hover:text-primary-600 hover:bg-slate-50 border-b-2 border-transparent">
-                    IMPÔTS
-                </a>
-                <a href="recapitulatif.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" 
-                   class="px-6 py-3 text-sm font-medium text-slate-600 hover:text-primary-600 hover:bg-slate-50 border-b-2 border-transparent">
-                    RÉCAPITULATIF
-                </a>
-            </div>
-        </div>
-    </nav>
+    <?php include APP_ROOT . '/includes/navbar-impots.php'; ?>
 
     <main class="max-w-7xl mx-auto px-4 py-2">
         <!-- Messages -->
@@ -320,7 +243,7 @@ $pageTitle = "Gestion des Dépenses - " . htmlspecialchars($client['nom']);
                 <button onclick="ouvrirModal()" class="inline-flex items-center px-4 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition">
                     <i class="fas fa-plus mr-2"></i> Ajouter Dépense
                 </button>
-                <button onclick="ouvrirModalNature()" class="inline-flex items-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition">
+                <button onclick="ouvrirModalNature()" class="inline-flex items-center px-4 py-2 bg-green-700 text-white font-medium rounded-lg hover:bg-green-800 transition">
                     <i class="fas fa-folder-plus mr-2"></i> Nouvelle Nature
                 </button>
             </div>
@@ -375,7 +298,7 @@ $pageTitle = "Gestion des Dépenses - " . htmlspecialchars($client['nom']);
                                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                                     <input type="hidden" name="action" value="supprimer">
                                     <input type="hidden" name="depense_id" value="<?= $depense['id'] ?>">
-                                    <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-sm rounded hover:bg-red-700">
+                                    <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-red-700 text-white text-sm rounded hover:bg-red-800">
                                         <i class="fas fa-trash mr-1"></i> Supprimer
                                     </button>
                                 </form>
@@ -473,7 +396,7 @@ $pageTitle = "Gestion des Dépenses - " . htmlspecialchars($client['nom']);
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
         
         <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-md">
-            <div class="px-6 py-4 border-b flex items-center justify-between bg-green-600 rounded-t-xl">
+            <div class="px-6 py-4 border-b flex items-center justify-between bg-green-700 rounded-t-xl">
                 <h3 class="text-lg font-bold text-white">
                     <i class="fas fa-folder-plus mr-2"></i> Créer une nature de dépense
                 </h3>
@@ -511,7 +434,7 @@ $pageTitle = "Gestion des Dépenses - " . htmlspecialchars($client['nom']);
                     <button type="button" onclick="fermerModalNature()" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50">
                         Annuler
                     </button>
-                    <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                    <button type="submit" class="px-6 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800">
                         <i class="fas fa-plus mr-2"></i> Créer
                     </button>
                 </div>

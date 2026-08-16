@@ -88,6 +88,43 @@ if (!defined('APP_GLOBAL_HANDLER')) {
     });
 }
 
+/**
+ * Convertit une exception attrapée dans une page en message français actionnable
+ * pour l'agent, sans jamais exposer de texte technique (SQL, classe PHP, trace).
+ *
+ * - Les exceptions "métier" (validations de classes/*.php, ex. "Le mois doit être
+ *   entre 1 et 12.") sont déjà rédigées en français simple : on les affiche telles quelles.
+ * - Toute autre exception (SQL, PDO, erreurs système, RuntimeException générique de
+ *   Database::query()) est remplacée par un message neutre ; le détail technique part
+ *   dans le journal d'erreurs via error_log(), jamais à l'écran.
+ *
+ * @param string $contexte Ex. "l'ajout de cet achat", "la modification de ce client"
+ */
+function messageErreurUtilisateur(Throwable $e, string $contexte): string
+{
+    $msg = trim($e->getMessage());
+
+    // Signatures indiquant un message technique (SQL, PDO, classe PHP, etc.)
+    // plutôt qu'une phrase métier rédigée à la main dans classes/*.php.
+    $signaturesTechniques = ['SQLSTATE', 'PDO', 'SQL', 'Exception]', 'Stack trace', 'Fatal error'];
+    $estTechnique = $msg === '' || $msg === 'Une erreur est survenue lors de l\'exécution de la requête.';
+    foreach ($signaturesTechniques as $signature) {
+        if (stripos($msg, $signature) !== false) {
+            $estTechnique = true;
+            break;
+        }
+    }
+
+    if ($estTechnique) {
+        error_log('[MESSAGE UTILISATEUR] Erreur technique masquée pour "' . $contexte . '": ' . $msg);
+        return "Une erreur inattendue a empêché $contexte. Réessayez ; si le problème persiste, contactez un administrateur.";
+    }
+
+    // Message métier déjà rédigé en français par nos propres classes : on le garde,
+    // en s'assurant qu'il se termine par une ponctuation pour rester lisible en contexte.
+    return rtrim($msg, '.') . '.';
+}
+
 class Database
 {
     private static ?Database $instance = null;
@@ -161,7 +198,8 @@ class Database
                 $this->pdo_conn = new PDO("sqlite:" . $sqlitePath);
                 $this->pdo_conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 $this->pdo_conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-                
+                $this->configurerConnexionSqlite();
+
                 // Si la base est nouvelle ou incomplète, on l'initialise
                 if (!$this->tablesExist()) {
                     $this->initialiserBaseDeDonnees();
@@ -207,7 +245,8 @@ class Database
                 $this->pdo_conn = new PDO("sqlite:" . $sqlitePath);
                 $this->pdo_conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 $this->pdo_conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-                
+                $this->configurerConnexionSqlite();
+
                 // Vérifier l'intégrité même en fallback
                 if (!$this->tablesExist()) {
                     $this->initialiserBaseDeDonnees();
@@ -218,6 +257,39 @@ class Database
             }
             error_log('DB MySQL connection error: ' . $e->getMessage());
             die('Erreur de connexion a la base de donnees. Verifiez le service puis reessayez.');
+        }
+    }
+
+    /**
+     * Configurer la connexion SQLite pour un usage fiable en mode Electron (offline).
+     *
+     * Sans ces réglages, SQLite ouvre la base avec un busy_timeout de 0 et un
+     * journal de type "rollback" : dès qu'un second accès écrit dans le fichier
+     * (deuxième instance de l'application, sauvegarde/VACUUM, antivirus ou
+     * indexeur Windows qui verrouille le fichier), toute écriture échoue
+     * IMMÉDIATEMENT avec « database is locked ». C'est la cause des plantages
+     * intermittents des formulaires à la validation.
+     *
+     * - busy_timeout : on attend (jusqu'à 5 s) qu'un verrou se libère au lieu
+     *   d'échouer instantanément.
+     * - journal_mode = WAL : les lecteurs ne bloquent plus l'écrivain (et
+     *   inversement), ce qui réduit fortement la contention.
+     * - synchronous = NORMAL : bon compromis fiabilité/performance avec WAL.
+     * - foreign_keys = ON : cohérence référentielle (OFF par défaut sur SQLite).
+     */
+    private function configurerConnexionSqlite(): void
+    {
+        try {
+            // 5 000 ms : on patiente jusqu'à ce que le verrou se libère.
+            $this->pdo_conn->exec('PRAGMA busy_timeout = 5000');
+            // WAL améliore la concurrence lecture/écriture (échoue silencieusement
+            // si le disque ne le supporte pas : on garde alors le mode par défaut).
+            $this->pdo_conn->exec('PRAGMA journal_mode = WAL');
+            $this->pdo_conn->exec('PRAGMA synchronous = NORMAL');
+            $this->pdo_conn->exec('PRAGMA foreign_keys = ON');
+        } catch (Exception $e) {
+            // Non bloquant : la base reste utilisable même si un PRAGMA échoue.
+            error_log('[SQLITE PRAGMA] ' . $e->getMessage());
         }
     }
 

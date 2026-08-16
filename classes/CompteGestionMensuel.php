@@ -238,6 +238,31 @@ class CompteGestionMensuel
         return $libelles[$this->statut] ?? $this->statut;
     }
 
+    /**
+     * Source unique de vérité pour l'affichage d'un statut de mois (label + couleurs).
+     * Utilisée par toutes les pages qui listent des clients (dashboard.php, clients.php…)
+     * pour éviter que deux écrans affichent un état différent pour le même client —
+     * bug déjà survenu : dashboard.php et clients.php testaient chacune des valeurs
+     * de statut différentes (voir STATUTS_VALIDES pour les valeurs réelles en base).
+     *
+     * Fournit deux variantes de couleur pour les deux usages courants : badge
+     * (fond clair + texte foncé, contraste AA) et point plein (petit indicateur
+     * coloré à côté d'un libellé texte).
+     *
+     * @param string|null $statut Valeur brute de compte_gestion_mensuel.statut, ou null si
+     *                            aucune ligne n'existe encore pour ce client/mois.
+     */
+    public static function getEtatAffichage(?string $statut): array
+    {
+        if ($statut === 'valide' || $statut === 'verrouille') {
+            return ['label' => 'Complet', 'classeBadge' => 'bg-green-100 text-green-800', 'classePoint' => 'bg-green-600'];
+        }
+        if ($statut === 'en_preparation' || $statut === 'pret_declaration') {
+            return ['label' => 'En cours', 'classeBadge' => 'bg-amber-100 text-amber-900', 'classePoint' => 'bg-amber-500'];
+        }
+        return ['label' => 'Incomplet', 'classeBadge' => 'bg-red-100 text-red-800', 'classePoint' => 'bg-red-600'];
+    }
+
     public function getDateValidation(): ?string
     {
         return $this->dateValidation;

@@ -26,24 +26,33 @@
             return confirm(message || 'Êtes-vous sûr ?');
         }
         
-        // Auto-hide des messages après 5 secondes
+        // Messages : les succès s'effacent seuls, les erreurs restent jusqu'à fermeture manuelle
         document.addEventListener('DOMContentLoaded', function() {
             const alerts = document.querySelectorAll('[class*="border-l-4"]');
             alerts.forEach(function(alert) {
-                setTimeout(function() {
-                    alert.style.transition = 'opacity 0.5s ease-out';
-                    alert.style.opacity = '0';
+                const estSucces = /bg-green/.test(alert.className);
+                if (estSucces) {
                     setTimeout(function() {
-                        alert.remove();
-                    }, 500);
-                }, 5000);
+                        alert.style.transition = 'opacity 0.5s ease-out';
+                        alert.style.opacity = '0';
+                        setTimeout(function() { alert.remove(); }, 500);
+                    }, 5000);
+                } else {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.setAttribute('aria-label', 'Fermer le message');
+                    btn.className = 'ml-auto pl-4 font-bold opacity-60 hover:opacity-100';
+                    btn.innerHTML = '&times;';
+                    btn.addEventListener('click', function() { alert.remove(); });
+                    (alert.querySelector('.flex') || alert).appendChild(btn);
+                }
             });
         });
-        
-        // Fermer les modals avec Escape
+
+        // Fermer les modals avec Escape (couvre modal-* et modalAchat, modalDepense, etc.)
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
-                document.querySelectorAll('[id^="modal-"]').forEach(function(modal) {
+                document.querySelectorAll('[id^="modal"]').forEach(function(modal) {
                     modal.classList.add('hidden');
                 });
             }

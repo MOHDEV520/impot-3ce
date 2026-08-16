@@ -20,15 +20,21 @@ $moisNoms = $moisNoms ?? [
     9 => 'Septembre', 10 => 'Octobre', 11 => 'Novembre', 12 => 'Décembre'
 ];
 
-// S'assurer que $client est un tableau pour éviter d'autres erreurs
-if (!isset($client)) {
+// Nom du client à afficher : $client peut être un objet Client, un tableau, ou absent.
+// Ne pas réassigner $client — les pages l'utilisent encore après l'inclusion de la navbar.
+if (isset($client) && $client instanceof Client) {
+    $clientNomNav = $client->getNom();
+} elseif (isset($client) && is_array($client)) {
+    $clientNomNav = $client['nom'] ?? 'Client';
+} else {
     if ($clientId > 0) {
         require_once APP_ROOT . '/classes/Client.php';
         $clObj = new Client($clientId);
-        $client = ['nom' => $clObj->getNom()];
+        $clientNomNav = $clObj->getNom();
     } else {
-        $client = ['nom' => 'Session'];
+        $clientNomNav = 'Session';
     }
+    $client = ['nom' => $clientNomNav];
 }
 ?>
 
@@ -65,27 +71,43 @@ if (!isset($client)) {
                     <i class="fas fa-home mr-1"></i> ACCUEIL
                 </a>
                 <span class="mx-2 text-slate-400">|</span>
-                <span class="text-primary-600 font-bold uppercase"><?= htmlspecialchars($client['nom'] ?? 'Client') ?></span>
+                <span class="text-primary-600 font-bold uppercase"><?= htmlspecialchars($clientNomNav) ?></span>
             </div>
             
             <!-- Sélecteur de mois/année - visible uniquement si un client est sélectionné -->
-            <?php if ($clientId > 0): ?>
+            <?php if ($clientId > 0):
+                // Liens mois précédent / suivant en préservant les autres paramètres (type, etc.)
+                $moisPrec = $mois == 1 ? 12 : $mois - 1;
+                $anneePrec = $mois == 1 ? $annee - 1 : $annee;
+                $moisSuiv = $mois == 12 ? 1 : $mois + 1;
+                $anneeSuiv = $mois == 12 ? $annee + 1 : $annee;
+                // Ne pas transporter l'état volatil de la page (saisies, filtres) vers un autre mois
+                $paramsNav = array_diff_key($_GET, array_flip(['masse_salariale', 'loyers_percus', 'its', 'marge', 'marge_taxable', 'fournisseur']));
+                $urlPrec = '?' . http_build_query(array_merge($paramsNav, ['client' => $clientId, 'mois' => $moisPrec, 'annee' => $anneePrec]));
+                $urlSuiv = '?' . http_build_query(array_merge($paramsNav, ['client' => $clientId, 'mois' => $moisSuiv, 'annee' => $anneeSuiv]));
+            ?>
             <div class="flex items-center space-x-2">
+                <a href="<?= htmlspecialchars($urlPrec) ?>" class="px-2 py-1 bg-slate-50 border rounded hover:bg-slate-100" aria-label="Mois précédent" title="Mois précédent">
+                    <i class="fas fa-chevron-left" aria-hidden="true"></i>
+                </a>
                 <form action="" method="GET" class="flex items-center space-x-2">
                     <input type="hidden" name="client" value="<?= $clientId ?>">
                     <?php if (isset($typeImpot)): ?><input type="hidden" name="type" value="<?= $typeImpot ?>"><?php endif; ?>
-                    
-                    <select name="mois" onchange="this.form.submit()" class="px-3 py-1 border rounded bg-slate-50 text-sm focus:ring-primary-500">
+
+                    <select name="mois" onchange="this.form.submit()" aria-label="Mois" class="px-3 py-1 border rounded bg-slate-50 text-sm focus:ring-primary-500">
                         <?php for ($m = 1; $m <= 12; $m++): ?>
                         <option value="<?= $m ?>" <?= $m == $mois ? 'selected' : '' ?>><?= $moisNoms[$m] ?></option>
                         <?php endfor; ?>
                     </select>
-                    <select name="annee" onchange="this.form.submit()" class="px-3 py-1 border rounded bg-slate-50 text-sm focus:ring-primary-500">
-                        <?php for ($a = date('Y') - 2; $a <= date('Y') + 1; $a++): ?>
+                    <select name="annee" onchange="this.form.submit()" aria-label="Année" class="px-3 py-1 border rounded bg-slate-50 text-sm focus:ring-primary-500">
+                        <?php for ($a = date('Y') - 5; $a <= date('Y') + 1; $a++): ?>
                         <option value="<?= $a ?>" <?= $a == $annee ? 'selected' : '' ?>><?= $a ?></option>
                         <?php endfor; ?>
                     </select>
                 </form>
+                <a href="<?= htmlspecialchars($urlSuiv) ?>" class="px-2 py-1 bg-slate-50 border rounded hover:bg-slate-100" aria-label="Mois suivant" title="Mois suivant">
+                    <i class="fas fa-chevron-right" aria-hidden="true"></i>
+                </a>
             </div>
             <?php endif; ?>
         </div>

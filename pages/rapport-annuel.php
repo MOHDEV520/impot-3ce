@@ -239,18 +239,23 @@ $pageTitle = "Rapport Annuel " . $annee . " - " . htmlspecialchars($client['nom'
 </head>
 <body class="bg-slate-100 min-h-screen">
     <!-- Header -->
-    <header class="bg-primary-800 text-white shadow-lg">
+    <header class="bg-primary-900 text-white shadow-xl no-print border-b border-primary-800">
         <div class="max-w-5xl mx-auto px-4 py-3">
             <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-building text-xl"></i>
-                    <span class="font-bold text-lg">CABINET FISCAL</span>
-                </div>
+                <a href="dashboard.php" class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-white rounded flex items-center justify-center p-1 shadow-inner">
+                        <img src="../assets/img/logo.png" alt="3CE FISCUS" class="w-full h-full object-contain">
+                    </div>
+                    <span class="font-bold text-xl tracking-wider text-white">3CE FISCUS</span>
+                </a>
                 <div class="flex items-center space-x-4">
-                    <span class="text-primary-200">
-                        Bienvenue, <strong class="text-white"><?= htmlspecialchars($agent->getPrenom() . ' ' . $agent->getNom()) ?></strong> | <?= $agent->getRole() === 'admin' ? 'Administrateur' : 'Agent Comptable' ?>
-                    </span>
-                    <a href="logout.php" class="text-primary-200 hover:text-white">Déconnexion</a>
+                    <div class="hidden md:flex flex-col items-end">
+                        <span class="text-xs text-primary-300 uppercase tracking-tighter">Session active</span>
+                        <strong class="text-sm font-bold"><?= htmlspecialchars($agent->getPrenom() . ' ' . $agent->getNom()) ?></strong>
+                    </div>
+                    <a href="logout.php" class="flex items-center px-4 py-2 bg-red-600/20 hover:bg-red-600 text-red-100 font-bold rounded-lg transition-all border border-red-500/30">
+                        <i class="fas fa-sign-out-alt mr-2"></i> <span class="hidden md:inline">Déconnexion</span>
+                    </a>
                 </div>
             </div>
         </div>
@@ -261,12 +266,12 @@ $pageTitle = "Rapport Annuel " . $annee . " - " . htmlspecialchars($client['nom'
         <div class="max-w-5xl mx-auto px-4 py-2">
             <div class="flex items-center text-sm text-slate-600">
                 <a href="dashboard.php" class="hover:text-primary-600">
-                    <i class="fas fa-home mr-1"></i> CABINET FISCAL
+                    <i class="fas fa-home mr-1"></i> ACCUEIL
                 </a>
                 <span class="mx-2">|</span>
-                <span>Dashboard Annuel</span>
+                <span class="font-medium text-primary-600"><?= htmlspecialchars($client['nom'] ?? '') ?></span>
                 <span class="mx-2">|</span>
-                <span class="font-medium text-primary-600">Année <?= $annee ?></span>
+                <span>Rapport annuel <?= $annee ?></span>
             </div>
         </div>
     </div>
@@ -486,7 +491,7 @@ $pageTitle = "Rapport Annuel " . $annee . " - " . htmlspecialchars($client['nom'
 
         <!-- Pied de page impression -->
         <div class="print-footer">
-            <strong>CABINET FISCAL</strong> | Dashboard Annuel | Année <?= $annee ?> — <?= htmlspecialchars($client['nom']) ?>
+            <strong>3CE FISCUS</strong> | Rapport annuel | Année <?= $annee ?> — <?= htmlspecialchars($client['nom']) ?>
         </div>
 
         <!-- Lien retour -->

@@ -6,16 +6,17 @@
 @source "../../*.php";
 
 @theme {
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
+  /* Palette 3CE FISCUS — dérivée de l'encre du logo (assets/img/logo.png, #1d3a5f) */
+  --color-primary-50: #f3f7fb;
+  --color-primary-100: #e4edf6;
+  --color-primary-200: #c6d9eb;
+  --color-primary-300: #9abcd9;
+  --color-primary-400: #6796c1;
+  --color-primary-500: #4577a8;
+  --color-primary-600: #345f8d;
+  --color-primary-700: #2a4c74;
+  --color-primary-800: #1d3a5f;
+  --color-primary-900: #1a3150;
   
   --color-slate-50: #f8fafc;
   --color-slate-100: #f1f5f9;
@@ -39,16 +40,18 @@
   --color-gray-800: #1f2937;
   --color-gray-900: #111827;
 
-  --color-blue-50: #eff6ff;
-  --color-blue-100: #dbeafe;
-  --color-blue-200: #bfdbfe;
-  --color-blue-300: #93c5fd;
-  --color-blue-400: #60a5fa;
-  --color-blue-500: #3b82f6;
-  --color-blue-600: #2563eb;
-  --color-blue-700: #1d4ed8;
-  --color-blue-800: #1e40af;
-  --color-blue-900: #1e3a8a;
+  /* blue-* aligné sur la palette 3CE : les pages historiques utilisant bg-blue-*
+     héritent automatiquement de l'identité du logo */
+  --color-blue-50: #f3f7fb;
+  --color-blue-100: #e4edf6;
+  --color-blue-200: #c6d9eb;
+  --color-blue-300: #9abcd9;
+  --color-blue-400: #6796c1;
+  --color-blue-500: #4577a8;
+  --color-blue-600: #345f8d;
+  --color-blue-700: #2a4c74;
+  --color-blue-800: #1d3a5f;
+  --color-blue-900: #1a3150;
 }
 
 @layer base {

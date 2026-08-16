@@ -22,6 +22,11 @@ if (!Agent::estConnecte() || !Agent::verifierTimeout()) {
 $agent = Agent::getAgentConnecte();
 $db = Database::getInstance();
 
+// Saisie de masse : si l'agent a cliqué « Enregistrer et ajouter un autre »,
+// on rouvre le modal (pré-focus Fournisseur) plutôt que de fermer après chaque achat.
+$reouvrirModalApres = false;
+$typeDocumentReouverture = 'facture';
+
 // Paramètres
 $clientId = isset($_GET['client']) ? (int)$_GET['client'] : 0;
 $mois = isset($_GET['mois']) ? (int)$_GET['mois'] : (int)date('n');
@@ -127,8 +132,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $message = "Achat ajouté avec succès.";
                 }
                 $messageType = "success";
+
+                if (($_POST['continuer'] ?? '0') === '1') {
+                    $reouvrirModalApres = true;
+                    $typeDocumentReouverture = $typeDocument;
+                }
             } catch (Exception $e) {
-                $message = "Erreur lors de l'ajout: " . $e->getMessage();
+                $message = messageErreurUtilisateur($e, "l'ajout de cet achat");
                 $messageType = "error";
             }
         } else {
@@ -156,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = "Achat modifié avec succès.";
                 $messageType = "success";
             } catch (Exception $e) {
-                $message = "Erreur lors de la modification: " . $e->getMessage();
+                $message = messageErreurUtilisateur($e, "la modification de cet achat");
                 $messageType = "error";
             }
         }
@@ -235,84 +245,7 @@ $pageTitle = "Achats Fournisseurs - " . htmlspecialchars($client['nom']);
     <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
 </head>
 <body class="bg-slate-100 min-h-screen">
-    <!-- Header -->
-    <header class="bg-primary-800 text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 py-3">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-building text-xl"></i>
-                    <span class="font-bold text-lg">CABINET FISCAL</span>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-primary-200">
-                        Bienvenue, <strong class="text-white"><?= htmlspecialchars($agent->getPrenom() . ' ' . $agent->getNom()) ?></strong> | <?= $agent->getRole() === 'admin' ? 'Administrateur' : 'Agent Comptable' ?>
-                    </span>
-                    <a href="logout.php" class="text-primary-200 hover:text-white">Déconnexion</a>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Breadcrumb et sélecteur de mois -->
-    <div class="bg-slate-200 border-b">
-        <div class="max-w-7xl mx-auto px-4 py-2">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center text-sm text-slate-600">
-                    <a href="dashboard.php" class="hover:text-primary-600">
-                        <i class="fas fa-home mr-1"></i> CABINET FISCAL
-                    </a>
-                    <span class="mx-2">|</span>
-                    <span class="font-medium text-primary-600"><?= htmlspecialchars($client['nom']) ?></span>
-                </div>
-                
-                <!-- Sélecteur de mois -->
-                <div class="flex items-center space-x-2">
-                    <a href="?client=<?= $clientId ?>&mois=<?= $mois == 1 ? 12 : $mois - 1 ?>&annee=<?= $mois == 1 ? $annee - 1 : $annee ?>" 
-                       class="px-2 py-1 bg-white rounded hover:bg-slate-100" title="Mois précédent">
-                        <i class="fas fa-chevron-left"></i>
-                    </a>
-                    <select onchange="changerMois(this.value)" class="px-3 py-1 border rounded bg-white text-sm">
-                        <?php for ($m = 1; $m <= 12; $m++): ?>
-                        <option value="<?= $m ?>" <?= $m == $mois ? 'selected' : '' ?>><?= $moisNoms[$m] ?></option>
-                        <?php endfor; ?>
-                    </select>
-                    <select onchange="changerAnnee(this.value)" class="px-3 py-1 border rounded bg-white text-sm">
-                        <?php for ($a = date('Y') - 5; $a <= date('Y') + 5; $a++): ?>
-                        <option value="<?= $a ?>" <?= $a == $annee ? 'selected' : '' ?>><?= $a ?></option>
-                        <?php endfor; ?>
-                    </select>
-                    <a href="?client=<?= $clientId ?>&mois=<?= $mois == 12 ? 1 : $mois + 1 ?>&annee=<?= $mois == 12 ? $annee + 1 : $annee ?>" 
-                       class="px-2 py-1 bg-white rounded hover:bg-slate-100" title="Mois suivant">
-                        <i class="fas fa-chevron-right"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Navigation Tabs -->
-    <nav class="bg-white border-b shadow-sm">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex space-x-1">
-                <a href="achats.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" 
-                   class="px-6 py-3 text-sm font-medium text-white bg-primary-600 border-b-2 border-primary-600">
-                    ACHATS
-                </a>
-                <a href="depenses.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" 
-                   class="px-6 py-3 text-sm font-medium text-slate-600 hover:text-primary-600 hover:bg-slate-50 border-b-2 border-transparent">
-                    DÉPENSES
-                </a>
-                <a href="impots.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" 
-                   class="px-6 py-3 text-sm font-medium text-slate-600 hover:text-primary-600 hover:bg-slate-50 border-b-2 border-transparent">
-                    IMPÔTS
-                </a>
-                <a href="recapitulatif.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" 
-                   class="px-6 py-3 text-sm font-medium text-slate-600 hover:text-primary-600 hover:bg-slate-50 border-b-2 border-transparent">
-                    RÉCAPITULATIF
-                </a>
-            </div>
-        </div>
-    </nav>
+    <?php include APP_ROOT . '/includes/navbar-impots.php'; ?>
 
     <main class="max-w-7xl mx-auto px-4 py-2">
         <!-- Messages -->
@@ -422,7 +355,7 @@ $pageTitle = "Achats Fournisseurs - " . htmlspecialchars($client['nom']);
                                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                                     <input type="hidden" name="action" value="supprimer">
                                     <input type="hidden" name="achat_id" value="<?= $achat['id'] ?>">
-                                    <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-sm rounded hover:bg-red-700">
+                                    <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-red-700 text-white text-sm rounded hover:bg-red-800">
                                         <i class="fas fa-trash mr-1"></i> Supprimer
                                     </button>
                                 </form>
@@ -590,8 +523,11 @@ $pageTitle = "Achats Fournisseurs - " . htmlspecialchars($client['nom']);
                     <button type="button" onclick="fermerModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 transition">
                         Annuler
                     </button>
-                    <button type="submit" class="px-6 py-2 bg-primary-600 text-white font-bold rounded-lg hover:bg-primary-700 transition shadow-lg">
-                        <i class="fas fa-save mr-2"></i> Enregistrer
+                    <button type="submit" name="continuer" value="1" id="btnEnregistrerContinuer" class="px-4 py-2 border border-primary-600 text-primary-700 font-bold rounded-lg hover:bg-primary-50 transition">
+                        <i class="fas fa-save mr-2"></i> Enregistrer et ajouter un autre
+                    </button>
+                    <button type="submit" name="continuer" value="0" class="px-6 py-2 bg-primary-600 text-white font-bold rounded-lg hover:bg-primary-700 transition shadow-lg">
+                        <i class="fas fa-check mr-2"></i> Enregistrer et fermer
                     </button>
                 </div>
             </form>
@@ -647,7 +583,7 @@ $pageTitle = "Achats Fournisseurs - " . htmlspecialchars($client['nom']);
             }
         }
         
-        function ouvrirModal(type = 'facture') {
+        function ouvrirModal(type = 'facture', focusFournisseur = false) {
             const getEl = (id) => document.getElementById(id);
             
             if (getEl('modalTitre')) getEl('modalTitre').textContent = type === 'releve' ? 'Ajouter un relevé' : 'Ajouter une facture';
@@ -672,14 +608,19 @@ $pageTitle = "Achats Fournisseurs - " . htmlspecialchars($client['nom']);
             if (getEl('sectionFournisseur')) getEl('sectionFournisseur').style.display = 'block';
             if (getEl('sectionNif')) getEl('sectionNif').style.display = 'block';
             if (getEl('sectionAdresse')) getEl('sectionAdresse').style.display = 'block';
-            
+            if (getEl('btnEnregistrerContinuer')) getEl('btnEnregistrerContinuer').style.display = 'inline-flex';
+
             const modal = getEl('modalAchat');
             if (modal) {
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
             }
+
+            if (focusFournisseur && getEl('inputFournisseur')) {
+                getEl('inputFournisseur').focus();
+            }
         }
-        
+
         function ouvrirModificationFromBtn(btn) {
             try {
                 const achat = JSON.parse(btn.dataset.achat);
@@ -709,11 +650,12 @@ $pageTitle = "Achats Fournisseurs - " . htmlspecialchars($client['nom']);
             
             if (getEl('inputExclureCA')) getEl('inputExclureCA').checked = (parseInt(achat.exclure_ca) === 1);
             calculerTTC();
-            
-            // Masquer les sections fournisseur en modification
+
+            // Masquer les sections fournisseur en modification (un seul achat à la fois)
             if (getEl('sectionFournisseur')) getEl('sectionFournisseur').style.display = 'none';
             if (getEl('sectionNif')) getEl('sectionNif').style.display = 'none';
             if (getEl('sectionAdresse')) getEl('sectionAdresse').style.display = 'none';
+            if (getEl('btnEnregistrerContinuer')) getEl('btnEnregistrerContinuer').style.display = 'none';
             
             const modal = getEl('modalAchat');
             if (modal) {
@@ -739,20 +681,14 @@ $pageTitle = "Achats Fournisseurs - " . htmlspecialchars($client['nom']);
             const ttcEl = document.getElementById('totalTTC');
             if (ttcEl) ttcEl.textContent = ttc.toLocaleString('fr-FR') + ' F CFA';
         }
-        
-        function changerMois(m) {
-            const url = new URL(window.location.href);
-            url.searchParams.set('mois', m);
-            url.searchParams.delete('fournisseur');
-            window.location.href = url.toString();
-        }
-        
-        function changerAnnee(a) {
-            const url = new URL(window.location.href);
-            url.searchParams.set('annee', a);
-            url.searchParams.delete('fournisseur');
-            window.location.href = url.toString();
-        }
+
+        <?php if ($reouvrirModalApres): ?>
+        // Saisie de masse : l'achat précédent vient d'être enregistré, on rouvre
+        // immédiatement le modal avec le focus sur Fournisseur pour le suivant.
+        document.addEventListener('DOMContentLoaded', function () {
+            ouvrirModal(<?= json_encode($typeDocumentReouverture) ?>, true);
+        });
+        <?php endif; ?>
     </script>
 </body>
 </html>

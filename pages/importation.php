@@ -93,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $step = 1;
         }
     } catch (Exception $e) {
-        $message = $e->getMessage();
+        $message = messageErreurUtilisateur($e, "l'importation");
         $messageType = 'danger';
         $step = 1;
         if (!empty($tempFile) && file_exists($tempFile)) unlink($tempFile);
@@ -282,7 +282,7 @@ include APP_ROOT . '/includes/header.php';
                             <button type="button" onclick="window.location.reload()" class="px-8 py-3 bg-gray-100 text-gray-700 font-bold rounded-lg hover:bg-gray-200">
                                 Annuler
                             </button>
-                            <button type="submit" class="flex-1 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 shadow-lg transition-all">
+                            <button type="submit" class="flex-1 py-3 bg-green-700 text-white font-bold rounded-lg hover:bg-green-800 shadow-lg transition-all">
                                 <i class="fas fa-check-circle mr-2"></i> Lancer l'importation
                             </button>
                         </div>
