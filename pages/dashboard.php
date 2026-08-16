@@ -116,7 +116,7 @@ $pageTitle = "Accueil - Tableau de bord";
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $pageTitle ?></title>
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/style.css?v=1.2">
     <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
 </head>
 <body class="bg-slate-100 min-h-screen">
@@ -194,7 +194,7 @@ $pageTitle = "Accueil - Tableau de bord";
                     <div class="card-stat <?= $clientsEnRetard > 0 ? 'card-stat-warn' : 'card-stat-accent' ?> text-center">
                         <div class="card-stat-label">Retards (<?= $moisNoms[$moisPrecedent] ?>)</div>
                         <div class="card-stat-value"><?= $clientsEnRetard ?></div>
-                        <div class="text-xs text-slate-400 mt-1">Limite: <?= date('d/m/Y', strtotime($dateLimiteMoisPrecedent)) ?></div>
+                        <div class="text-xs text-slate-500 mt-1">Limite: <?= date('d/m/Y', strtotime($dateLimiteMoisPrecedent)) ?></div>
                     </div>
                 </div>
             </div>

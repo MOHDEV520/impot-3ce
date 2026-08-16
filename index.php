@@ -80,7 +80,7 @@ $moisActuel = [
     <title>Connexion - Système de Gestion Fiscale</title>
     
     <!-- Tailwind CSS (Offline) -->
-    <link rel="stylesheet" href="assets/css/style.css?v=1.1">
+    <link rel="stylesheet" href="assets/css/style.css?v=1.2">
     
     <!-- Font Awesome (Offline) -->
     <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css?v=1.1">
