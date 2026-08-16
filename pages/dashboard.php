@@ -179,33 +179,33 @@ $pageTitle = "Accueil - Tableau de bord";
                 <!-- KPIs -->
                 <div class="flex space-x-4">
                     <!-- Nombre de clients -->
-                    <div class="bg-primary-600 text-white px-6 py-4 rounded-lg text-center min-w-35">
-                        <div class="text-sm opacity-80">Nombre de clients</div>
-                        <div class="text-3xl font-bold"><?= $totalClients ?></div>
+                    <div class="card-stat card-stat-accent text-center">
+                        <div class="card-stat-label">Nombre de clients</div>
+                        <div class="card-stat-value"><?= $totalClients ?></div>
                     </div>
-                    
+
                     <!-- Mois actif -->
-                    <div class="bg-slate-200 text-slate-700 px-6 py-4 rounded-lg text-center min-w-35">
-                        <div class="text-sm">Mois actif</div>
-                        <div class="text-lg font-bold"><?= $moisNoms[$moisActuel] ?> <?= $anneeActuelle ?></div>
+                    <div class="card-stat card-stat-neutral text-center">
+                        <div class="card-stat-label">Mois actif</div>
+                        <div class="text-lg font-bold text-slate-800"><?= $moisNoms[$moisActuel] ?> <?= $anneeActuelle ?></div>
                     </div>
-                    
+
                     <!-- Clients en retard -->
-                    <div class="<?= $clientsEnRetard > 0 ? 'bg-red-600' : 'bg-green-600' ?> text-white px-6 py-4 rounded-lg text-center min-w-35">
-                        <div class="text-sm opacity-80">Retards (<?= $moisNoms[$moisPrecedent] ?>)</div>
-                        <div class="text-3xl font-bold"><?= $clientsEnRetard ?></div>
-                        <div class="text-xs opacity-70 mt-1">Limite: <?= date('d/m/Y', strtotime($dateLimiteMoisPrecedent)) ?></div>
+                    <div class="card-stat <?= $clientsEnRetard > 0 ? 'card-stat-warn' : 'card-stat-accent' ?> text-center">
+                        <div class="card-stat-label">Retards (<?= $moisNoms[$moisPrecedent] ?>)</div>
+                        <div class="card-stat-value"><?= $clientsEnRetard ?></div>
+                        <div class="text-xs text-slate-400 mt-1">Limite: <?= date('d/m/Y', strtotime($dateLimiteMoisPrecedent)) ?></div>
                     </div>
                 </div>
             </div>
 
             <!-- Boutons d'action -->
             <div class="mt-6 flex space-x-4">
-                <a href="clients.php" class="flex-1 py-3 bg-slate-700 text-white text-center rounded-lg hover:bg-slate-800 transition">
-                    <i class="fas fa-users mr-2"></i> Portefeuille clients
+                <a href="clients.php" class="btn-secondary flex-1 py-3">
+                    <i class="fas fa-users"></i> Portefeuille clients
                 </a>
-                <a href="client-nouveau.php" class="flex-1 py-3 bg-green-600 text-white text-center rounded-lg hover:bg-green-700 transition">
-                    <i class="fas fa-plus mr-2"></i> Nouveau client
+                <a href="client-nouveau.php" class="btn-success flex-1 py-3">
+                    <i class="fas fa-plus"></i> Nouveau client
                 </a>
             </div>
         </div>
@@ -250,7 +250,7 @@ $pageTitle = "Accueil - Tableau de bord";
                         </td>
                         <td class="px-6 py-4">
                             <span class="inline-flex items-center">
-                                <span class="w-2 h-2 rounded-full <?= $client['etat_class'] ?> mr-2"></span>
+                                <span class="badge-dot <?= $client['etat_class'] ?> mr-2"></span>
                                 <?= $client['etat_label'] ?>
                             </span>
                         </td>
@@ -259,14 +259,14 @@ $pageTitle = "Accueil - Tableau de bord";
                         </td>
                         <td class="px-6 py-4 text-center">
                             <div class="flex justify-center space-x-2">
-                                <a href="achats.php?client=<?= $client['id'] ?>&mois=<?= $moisActuel ?>&annee=<?= $anneeActuelle ?>" 
-                                   class="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">
-                                    <i class="fas fa-folder-open mr-2"></i>
+                                <a href="achats.php?client=<?= $client['id'] ?>&mois=<?= $moisActuel ?>&annee=<?= $anneeActuelle ?>"
+                                   class="btn-primary">
+                                    <i class="fas fa-folder-open"></i>
                                     Ouvrir
                                 </a>
-                                <a href="rapport-annuel.php?client=<?= $client['id'] ?>&annee=<?= $anneeActuelle ?>" 
-                                   class="inline-flex items-center px-3 py-2 bg-slate-600 text-white text-sm font-medium rounded-lg hover:bg-slate-700 transition-colors" title="Rapport Annuel">
-                                    <i class="fas fa-chart-bar mr-1"></i>
+                                <a href="rapport-annuel.php?client=<?= $client['id'] ?>&annee=<?= $anneeActuelle ?>"
+                                   class="btn-secondary" title="Rapport Annuel">
+                                    <i class="fas fa-chart-bar"></i>
                                     Annuel
                                 </a>
                             </div>
@@ -279,7 +279,7 @@ $pageTitle = "Accueil - Tableau de bord";
 
             <!-- Lien vers tous les clients -->
             <div class="px-6 py-4 border-t text-center">
-                <a href="clients.php" class="inline-flex items-center px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition">
+                <a href="clients.php" class="btn-outline">
                     Voir tous les clients
                 </a>
             </div>
