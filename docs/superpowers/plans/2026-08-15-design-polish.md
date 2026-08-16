@@ -10,11 +10,13 @@
 
 **Spec:** `docs/superpowers/specs/2026-08-15-design-polish-design.md`
 
+**Correction (mid-execution, after Tasks 1-2 landed):** the spec and this plan's original Task 3-5 snippets were drafted by reading `pages/dashboard.php`/`pages/clients.php`/`pages/impots.php` from a working tree that had local uncommitted edits never present in git history. Against the actual tracked codebase: only `pages/importation.php` uses `includes/header.php` (Task 2's harmonization, already done, is real but lower-impact than originally described); every other page — including all 3 pilots — builds its own bespoke inline header, and status colors (`etat_class`) are computed inline per page rather than via a shared helper. Tasks 3-5 below were corrected to match the real tracked file content before being dispatched; see the SDD ledger's Task 3 entry for the full finding.
+
 ## Global Constraints
 
 - No new colors — reuse `primary-*` / `slate-*` / `gray-*` / `red-*` / `green-*` / `amber-*` tokens already defined in `assets/css/input.css`.
 - No change to `classes/*.php` business logic, SQL, or data flow.
-- `CompteGestionMensuel::getEtatAffichage()` stays the single source of truth for status colors (`classeBadge`, `classePoint`) — do not duplicate its color logic in new CSS classes; the new `.badge` class only adds shape/spacing/typography, and pages keep applying the color classes it already returns.
+- Status colors (`$client['etat_class']`, e.g. `bg-green-500`/`bg-amber-500`/`bg-red-500`/`bg-slate-400`) are computed inline, independently, in each page that needs them (there is no shared helper for this in the tracked codebase) — the new `.badge`/`.badge-dot` classes stay color-agnostic (shape/spacing/typography only) and pages keep supplying `etat_class` alongside them exactly as before; do not touch the PHP that computes `etat_class`.
 - No automated test suite exists in this repo (per `CLAUDE.md`) — every task's verification step is a concrete manual check: run `npm run build`, then load the page in a browser at `http://localhost/IMPOT%203CE/pages/<page>.php` (adjust to the actual local vhost/docroot) logged in as `admin@cabinet.local` / `admin123`, and confirm the described visual/functional outcome.
 - Bump the CSS cache-busting query (`style.css?v=1.1` → `?v=1.2`) wherever it appears, so browsers don't serve a stale cached stylesheet after the rebuild.
 - `header.php` and `navbar-impots.php` keep their separate responsibilities (global nav vs. client-contextual nav) — harmonize appearance only, not structure.
@@ -102,24 +104,28 @@ Add this block at the end of the file (after the existing `@layer utilities { ..
     @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1;
   }
 
+  /* Tailwind v4 cannot @apply a custom @layer components class into another
+     (only core utilities) — each variant below repeats .btn's base list
+     inline instead of composing "@apply btn ...". */
+
   .btn-primary {
-    @apply btn bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
   }
 
   .btn-secondary {
-    @apply btn bg-slate-600 text-white hover:bg-slate-700 focus:ring-slate-400;
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 bg-slate-600 text-white hover:bg-slate-700 focus:ring-slate-400;
   }
 
   .btn-success {
-    @apply btn bg-green-700 text-white hover:bg-green-800 focus:ring-green-500;
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 bg-green-700 text-white hover:bg-green-800 focus:ring-green-500;
   }
 
   .btn-danger {
-    @apply btn bg-red-700 text-white hover:bg-red-800 focus:ring-red-500;
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 bg-red-700 text-white hover:bg-red-800 focus:ring-red-500;
   }
 
   .btn-outline {
-    @apply btn border border-slate-300 text-slate-700 bg-white hover:bg-slate-50 focus:ring-slate-300;
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 border border-slate-300 text-slate-700 bg-white hover:bg-slate-50 focus:ring-slate-300;
   }
 
   .table-clean {
@@ -151,8 +157,8 @@ Expected: exits 0 and reports the minified `assets/css/style.css` was written (n
 
 - [ ] **Step 3: Verify the new classes made it into the compiled CSS**
 
-Run: `grep -c "card-stat-warn" "assets/css/style.css"`
-Expected: a number greater than 0 (the class name survives minification as a literal selector).
+Run: `grep -c "card-stat-warn" "assets/css/style.css"` and `grep -c "btn-primary" "assets/css/style.css"`
+Expected: both return a number greater than 0 (the class names survive minification as literal selectors).
 
 - [ ] **Step 4: Bump the cache-busting version in `includes/header.php`**
 
@@ -246,10 +252,12 @@ git commit -m "style: harmonize header.php background/shadow with navbar-impots.
 ### Task 3: Apply shared components to `pages/dashboard.php` (Accueil)
 
 **Files:**
-- Modify: `pages/dashboard.php:119-171` (profile + KPI card), `pages/dashboard.php:220-232` (row action buttons), `pages/dashboard.php:242` (footer link button)
+- Modify: `pages/dashboard.php` (profile + KPI card, row action buttons, footer link button — this pilot leaves the page's own `<header>`/breadcrumb block, lines ~113-145, untouched; see Note below)
 
 **Interfaces:**
-- Consumes: `.card`, `.card-stat`, `.card-stat-accent`, `.card-stat-warn`, `.card-stat-neutral`, `.card-stat-label`, `.card-stat-value`, `.badge`, `.badge-dot`, `.btn-primary`, `.btn-secondary`, `.btn-success`, `.btn-outline` (Task 1). `$client['etat_class']` / `$client['retard']` (existing PHP vars, unchanged — from `CompteGestionMensuel::getEtatAffichage()`).
+- Consumes: `.card`, `.card-stat`, `.card-stat-accent`, `.card-stat-warn`, `.card-stat-neutral`, `.card-stat-label`, `.card-stat-value`, `.badge`, `.badge-dot`, `.btn-primary`, `.btn-secondary`, `.btn-success`, `.btn-outline` (Task 1). `$client['etat_class']` / `$client['retard']` (existing PHP vars, unchanged — computed inline in this file, not via a shared helper; see Global Constraints).
+
+**Note:** `pages/dashboard.php` builds its own `<!DOCTYPE>/<head>/<header>` inline (it does not include `includes/header.php` or `includes/navbar-impots.php`) — same pattern as most other pages in this codebase. This task only touches the card/KPI/badge/button markup below the header, per the file structure above; the header block itself is out of scope for this pilot (unifying the many bespoke inline headers is rollout-scope work, not part of these 3 pilots).
 
 - [ ] **Step 1: Replace the flat KPI blocks with `.card-stat`**
 
@@ -257,7 +265,7 @@ In `pages/dashboard.php`, change:
 
 ```php
                 <!-- KPIs -->
-                <div class="flex flex-wrap gap-4">
+                <div class="flex space-x-4">
                     <!-- Nombre de clients -->
                     <div class="bg-primary-600 text-white px-6 py-4 rounded-lg text-center min-w-35">
                         <div class="text-sm opacity-80">Nombre de clients</div>
@@ -271,7 +279,7 @@ In `pages/dashboard.php`, change:
                     </div>
                     
                     <!-- Clients en retard -->
-                    <div class="<?= $clientsEnRetard > 0 ? 'bg-red-700' : 'bg-green-700' ?> text-white px-6 py-4 rounded-lg text-center min-w-35">
+                    <div class="<?= $clientsEnRetard > 0 ? 'bg-red-600' : 'bg-green-600' ?> text-white px-6 py-4 rounded-lg text-center min-w-35">
                         <div class="text-sm opacity-80">Retards (<?= $moisNoms[$moisPrecedent] ?>)</div>
                         <div class="text-3xl font-bold"><?= $clientsEnRetard ?></div>
                         <div class="text-xs opacity-70 mt-1">Limite: <?= date('d/m/Y', strtotime($dateLimiteMoisPrecedent)) ?></div>
@@ -283,7 +291,7 @@ to:
 
 ```php
                 <!-- KPIs -->
-                <div class="flex flex-wrap gap-4">
+                <div class="flex space-x-4">
                     <!-- Nombre de clients -->
                     <div class="card-stat card-stat-accent text-center">
                         <div class="card-stat-label">Nombre de clients</div>
@@ -315,7 +323,7 @@ In `pages/dashboard.php`, change:
                 <a href="clients.php" class="flex-1 py-3 bg-slate-700 text-white text-center rounded-lg hover:bg-slate-800 transition">
                     <i class="fas fa-users mr-2"></i> Portefeuille clients
                 </a>
-                <a href="client-nouveau.php" class="flex-1 py-3 bg-green-700 text-white text-center rounded-lg hover:bg-green-800 transition">
+                <a href="client-nouveau.php" class="flex-1 py-3 bg-green-600 text-white text-center rounded-lg hover:bg-green-700 transition">
                     <i class="fas fa-plus mr-2"></i> Nouveau client
                 </a>
             </div>
@@ -433,10 +441,11 @@ git commit -m "style: apply shared card/badge/button components to dashboard.php
 ### Task 4: Apply shared components to `pages/clients.php` (Liste des clients)
 
 **Files:**
-- Modify: `pages/clients.php:122-163` (filter panel), `pages/clients.php:166-233` (table)
+- Modify: `pages/clients.php` (filter panel, table) — this pilot leaves the page's own `<header>` block untouched, same as Task 3 (see its Note).
 
 **Interfaces:**
 - Consumes: `.card`, `.badge`, `.btn-primary`, `.btn-secondary` (used for the amber "edit" and indigo "rapport" actions — see note below), `.btn-success`, `.btn-outline`, `.table-clean` (Task 1).
+- `$client['etat_class']` here is a solid background (`bg-green-500`/`bg-amber-500`/`bg-red-500`, computed inline in this file — same as Task 3's note on this) — keep `text-white` alongside `.badge` in Step 3 below, since `.badge` itself sets no text color and the solid background needs it for contrast.
 
 - [ ] **Step 1: Replace the filter panel wrapper and its buttons with `.card`/`.btn-*`**
 
@@ -445,7 +454,7 @@ In `pages/clients.php`, change:
 ```php
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-slate-800">Liste des Clients</h1>
-            <a href="client-nouveau.php" class="inline-flex items-center px-4 py-2 bg-green-700 text-white font-medium rounded-lg hover:bg-green-800 transition-colors">
+            <a href="client-nouveau.php" class="inline-flex items-center px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors">
                 <i class="fas fa-plus mr-2"></i> Nouveau client
             </a>
         </div>
@@ -524,7 +533,7 @@ In `pages/clients.php`, change:
 
 ```php
                         <td class="px-4 py-4 text-center">
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium <?= $client['etat_class'] ?>">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-white text-sm font-medium <?= $client['etat_class'] ?>">
                                 <?= $client['etat_label'] ?>
                             </span>
                         </td>
@@ -534,7 +543,7 @@ to:
 
 ```php
                         <td class="px-4 py-4 text-center">
-                            <span class="badge text-sm <?= $client['etat_class'] ?>">
+                            <span class="badge text-white text-sm <?= $client['etat_class'] ?>">
                                 <?= $client['etat_label'] ?>
                             </span>
                         </td>
@@ -582,7 +591,7 @@ git commit -m "style: apply shared card/badge/button components to clients.php"
 ### Task 5: Apply shared components to `pages/impots.php` (Gestion des impôts) — outer shell only
 
 **Files:**
-- Modify: `pages/impots.php:487-492` (message banner), `pages/impots.php:495-496` (selector panel wrapper), `pages/impots.php:1633-1649` (bottom action buttons)
+- Modify: `pages/impots.php` (message banner, selector panel wrapper, bottom action buttons — approximate locations: message banner and selector panel are near the top of `<main>`, right after the page's own inline header/breadcrumb/tabs blocks; bottom action buttons are the last `<div>` before the closing of the form, near the end of the file). Use the exact "before" text below to locate each block — do not rely on line numbers, this file is long and edited by other in-flight work.
 
 **Interfaces:**
 - Consumes: `.card`, `.btn-success`, `.btn-danger`, `.btn-secondary` (Task 1).
@@ -628,16 +637,16 @@ to:
         <div class="card mb-6 p-4">
 ```
 
-- [ ] **Step 3: Standardize the bottom action buttons ("Récap Paiements" / "Enregistrer" / "Fermer", around line 1633-1649)**
+- [ ] **Step 3: Standardize the bottom action buttons ("Récap Paiements" / "Enregistrer" / "Fermer")**
 
 In `pages/impots.php`, change:
 
 ```php
                         <a href="recap-paiements.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" 
-                           class="px-6 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 font-medium">
+                           class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium">
                             <i class="fas fa-file-pdf mr-2"></i>Récap Paiements
                         </a>
-                        <button type="submit" class="px-6 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 font-medium">
+                        <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium">
                             <i class="fas fa-save mr-2"></i>Enregistrer
                         </button>
                         <a href="dashboard.php" 
