@@ -63,7 +63,7 @@ $basePath = strpos($_SERVER['PHP_SELF'], '/pages/') !== false ? '../' : '';
         }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-slate-100 min-h-screen">
     <?php if ($agentConnecte): ?>
     <!-- Navigation principale -->
     <nav class="bg-primary-900 text-white shadow-xl no-print border-b border-primary-800">
@@ -98,7 +98,7 @@ $basePath = strpos($_SERVER['PHP_SELF'], '/pages/') !== false ? '../' : '';
     </nav>
     
     <!-- Menu secondaire -->
-    <div class="bg-white shadow no-print">
+    <div class="bg-white border-b shadow-sm no-print">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex space-x-8 h-12">
                 <?php
