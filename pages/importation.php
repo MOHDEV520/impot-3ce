@@ -134,7 +134,7 @@ include APP_ROOT . '/includes/header.php';
             </div>
         <?php endif; ?>
 
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div class="card overflow-hidden p-0">
             <!-- Stepper -->
             <div class="flex border-b border-gray-100 bg-gray-50/50">
                 <div class="flex-1 py-4 px-6 flex items-center <?= $step == 1 ? 'bg-white border-b-2 border-primary-500' : '' ?>">
@@ -190,8 +190,8 @@ include APP_ROOT . '/includes/header.php';
                             </div>
                         </div>
 
-                        <button type="submit" class="w-full py-3 bg-primary-600 text-white font-bold rounded-lg hover:bg-primary-700 shadow-lg transition-all transform hover:-translate-y-0.5">
-                            Continuer vers le mapping <i class="fas fa-arrow-right ml-2"></i>
+                        <button type="submit" class="btn-primary w-full py-3">
+                            Continuer vers le mapping <i class="fas fa-arrow-right"></i>
                         </button>
                     </form>
 
@@ -279,11 +279,11 @@ include APP_ROOT . '/includes/header.php';
                         </div>
 
                         <div class="flex justify-between items-center gap-4">
-                            <button type="button" onclick="window.location.reload()" class="px-8 py-3 bg-gray-100 text-gray-700 font-bold rounded-lg hover:bg-gray-200">
+                            <button type="button" onclick="window.location.reload()" class="btn-outline px-8 py-3">
                                 Annuler
                             </button>
-                            <button type="submit" class="flex-1 py-3 bg-green-700 text-white font-bold rounded-lg hover:bg-green-800 shadow-lg transition-all">
-                                <i class="fas fa-check-circle mr-2"></i> Lancer l'importation
+                            <button type="submit" class="btn-success flex-1 py-3">
+                                <i class="fas fa-check-circle"></i> Lancer l'importation
                             </button>
                         </div>
                     </form>
