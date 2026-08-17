@@ -223,7 +223,7 @@ $typesActivite = Client::getTypesActivite();
         <form method="POST" class="space-y-6">
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
             <!-- Informations générales -->
-            <div class="bg-white rounded-xl shadow-sm p-6">
+            <div class="card">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4">
                     <i class="fas fa-building mr-2 text-gray-400"></i>
                     Informations générales
@@ -297,7 +297,7 @@ $typesActivite = Client::getTypesActivite();
             </div>
             
             <!-- Coordonnées -->
-            <div class="bg-white rounded-xl shadow-sm p-6">
+            <div class="card">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4">
                     <i class="fas fa-address-card mr-2 text-gray-400"></i>
                     Coordonnées
@@ -334,7 +334,7 @@ $typesActivite = Client::getTypesActivite();
             </div>
             
             <!-- Paramètres fiscaux -->
-            <div class="bg-white rounded-xl shadow-sm p-6">
+            <div class="card">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4">
                     <i class="fas fa-file-invoice-dollar mr-2 text-gray-400"></i>
                     Paramètres fiscaux
@@ -483,11 +483,11 @@ $typesActivite = Client::getTypesActivite();
             
             <!-- Boutons -->
             <div class="flex justify-end space-x-4">
-                <a href="clients.php" class="px-6 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
+                <a href="clients.php" class="btn-outline">
                     Annuler
                 </a>
-                <button type="submit" class="px-6 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors">
-                    <i class="fas fa-save mr-2"></i> Créer le client
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-save"></i> Créer le client
                 </button>
             </div>
         </form>
