@@ -123,7 +123,7 @@ foreach ($agents as $a) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion des agents - Gestion Fiscale</title>
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/style.css?v=1.2">
     <script>
         tailwind.config = {
             theme: {
@@ -139,7 +139,7 @@ foreach ($agents as $a) {
             }
         }
     </script>
-    <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css?v=1.2">
 </head>
 <body class="bg-gray-100 min-h-screen">
     <!-- Navigation -->
@@ -190,9 +190,9 @@ foreach ($agents as $a) {
                 <h1 class="text-2xl font-bold text-gray-800">Gestion des agents</h1>
                 <p class="text-gray-500 mt-1"><?= $nbActifs ?> actif(s), <?= $nbInactifs ?> inactif(s)</p>
             </div>
-            <button onclick="openModal('modal-ajouter')" 
-                    class="mt-4 md:mt-0 inline-flex items-center px-4 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700">
-                <i class="fas fa-plus mr-2"></i> Nouvel agent
+            <button onclick="openModal('modal-ajouter')"
+                    class="btn-primary mt-4 md:mt-0">
+                <i class="fas fa-plus"></i> Nouvel agent
             </button>
         </div>
         
@@ -209,9 +209,9 @@ foreach ($agents as $a) {
         <?php endif; ?>
         
         <!-- Liste des agents -->
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-            <table class="w-full">
-                <thead class="bg-gray-50">
+        <div class="card overflow-hidden p-0">
+            <table class="table-clean">
+                <thead>
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Agent</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
@@ -221,9 +221,9 @@ foreach ($agents as $a) {
                         <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200">
+                <tbody>
                     <?php foreach ($agents as $a): ?>
-                    <tr class="hover:bg-gray-50 <?= $a['statut'] !== 'actif' ? 'opacity-60' : '' ?>">
+                    <tr class="<?= $a['statut'] !== 'actif' ? 'opacity-60' : '' ?>">
                         <td class="px-6 py-4">
                             <div class="flex items-center">
                                 <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center mr-3">
@@ -358,12 +358,12 @@ foreach ($agents as $a) {
                 </div>
                 
                 <div class="flex justify-end space-x-3 pt-4">
-                    <button type="button" onclick="closeModal('modal-ajouter')" 
-                            class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                    <button type="button" onclick="closeModal('modal-ajouter')"
+                            class="btn-outline">
                         Annuler
                     </button>
-                    <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
-                        <i class="fas fa-plus mr-1"></i> Créer
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-plus"></i> Créer
                     </button>
                 </div>
             </form>
@@ -433,12 +433,12 @@ foreach ($agents as $a) {
                 </div>
                 
                 <div class="flex justify-end space-x-3 pt-4">
-                    <button type="button" onclick="closeModal('modal-modifier')" 
-                            class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                    <button type="button" onclick="closeModal('modal-modifier')"
+                            class="btn-outline">
                         Annuler
                     </button>
-                    <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
-                        <i class="fas fa-save mr-1"></i> Enregistrer
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i> Enregistrer
                     </button>
                 </div>
             </form>
