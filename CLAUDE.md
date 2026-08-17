@@ -67,6 +67,9 @@ There is no automated test suite, linter, or CI config in this repo — verify c
 - `electron-builder` config excludes dev-only files from the packaged app (`test_*.php`, `install.php`, Tailwind source/config, `*.sqlite*`, `.git`, etc.) — see the `files` array in `package.json`; add new dev-only artifacts there rather than relying on `.gitignore`.
 - Auto-update uses `electron-updater` against a GitHub releases provider (`cabinet-fisc/impot-3ce`); only stable releases are ever installed (`allowPrerelease = false`).
 
+### Shared UI components (`assets/css/input.css`)
+- On top of Tailwind, `assets/css/input.css` defines a small set of reusable component classes with `@apply` (`.card`, `.card-header`, `.card-stat*`, `.badge`, `.badge-dot`, `.btn-primary`/`.btn-success`/`.btn-outline`, `.table-clean`, …) compiled into `assets/css/style.css` via `npm run build`. Pages are being migrated one at a time from ad-hoc inline Tailwind utility soup to these shared classes (see recent `style: apply shared card/... components to X.php` commits) — when touching a page's markup, prefer the existing shared classes over hand-rolled Tailwind combinations, and remember any change to `input.css` requires re-running `npm run build` (or `npm run watch`) to take effect since `style.css` is a committed, generated file.
+
 ## Language / naming convention
 
 The entire codebase — variable names, method names, comments, UI copy — is in **French**, matching French tax terminology (TVA, CF, ITS, TL, IRF, TF, CSS, RAS). Keep new code consistent with this convention rather than mixing in English identifiers.
