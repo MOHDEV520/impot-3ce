@@ -203,8 +203,8 @@ $pageTitle = "Rapport Annuel " . $annee . " - " . htmlspecialchars($client['nom'
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $pageTitle ?></title>
-    <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/style.css?v=1.2">
+    <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css?v=1.2">
     <script src="../assets/vendor/chartjs/chart.min.js"></script>
     <style>
         .print-only { display: none; }
@@ -311,8 +311,8 @@ $pageTitle = "Rapport Annuel " . $annee . " - " . htmlspecialchars($client['nom'
                         </select>
                     </form>
                     <!-- Bouton imprimer/PDF -->
-                    <button onclick="window.print()" class="inline-flex items-center px-4 py-1.5 bg-primary-700 text-white text-sm font-medium rounded-lg hover:bg-primary-800 transition">
-                        <i class="fas fa-download mr-2"></i> Rapport_Annuel_<?= $annee ?>.pdf
+                    <button onclick="window.print()" class="btn-primary py-1.5">
+                        <i class="fas fa-download"></i> Rapport_Annuel_<?= $annee ?>.pdf
                     </button>
                 </div>
             </div>
@@ -344,7 +344,7 @@ $pageTitle = "Rapport Annuel " . $annee . " - " . htmlspecialchars($client['nom'
         <!-- ============================================ -->
         <!-- ACHATS PAR FOURNISSEUR + GRAPHIQUE -->
         <!-- ============================================ -->
-        <div class="bg-white rounded-xl shadow-sm border p-6 mb-8 rapport-card">
+        <div class="card mb-8 rapport-card">
             <h2 class="text-lg font-bold text-slate-800 mb-4">Achats par Fournisseur</h2>
             <div class="flex gap-6">
                 <!-- Tableau -->
@@ -391,7 +391,7 @@ $pageTitle = "Rapport Annuel " . $annee . " - " . htmlspecialchars($client['nom'
         <!-- ============================================ -->
         <div class="grid grid-cols-2 gap-6 mb-8">
             <!-- Total Dépenses -->
-            <div class="bg-white rounded-xl shadow-sm border p-6 rapport-card">
+            <div class="card rapport-card">
                 <h2 class="text-lg font-bold text-slate-800 mb-3">Total Dépenses</h2>
                 <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
                     <div class="text-2xl font-bold text-amber-700"><?= formatMontant($totalDepensesAnnuel) ?> F CFA</div>
@@ -425,7 +425,7 @@ $pageTitle = "Rapport Annuel " . $annee . " - " . htmlspecialchars($client['nom'
             </div>
 
             <!-- Impôts Payés -->
-            <div class="bg-white rounded-xl shadow-sm border p-6 rapport-card">
+            <div class="card rapport-card">
                 <h2 class="text-lg font-bold text-slate-800 mb-3">Impôts Payés en <?= $annee ?></h2>
                 <table class="w-full text-sm">
                     <thead>
@@ -471,7 +471,7 @@ $pageTitle = "Rapport Annuel " . $annee . " - " . htmlspecialchars($client['nom'
         <!-- ============================================ -->
         <!-- REMARQUES -->
         <!-- ============================================ -->
-        <div class="bg-white rounded-xl shadow-sm border p-6 mb-6 rapport-card">
+        <div class="card mb-6 rapport-card">
             <h2 class="text-lg font-bold text-slate-800 mb-3">Remarques</h2>
             <ul class="text-sm text-slate-600 space-y-1 list-disc list-inside">
                 <?php if ($tvaAnnuel > 0): ?>
