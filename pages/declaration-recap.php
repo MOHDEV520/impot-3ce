@@ -94,8 +94,8 @@ $pageTitle = "Récapitulatif des déclarations - " . $annee;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $pageTitle ?></title>
-    <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/style.css?v=1.2">
+    <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css?v=1.2">
     <style>
         @media print {
             body { font-size: 11px; }
@@ -135,7 +135,7 @@ $pageTitle = "Récapitulatif des déclarations - " . $annee;
     <div class="max-w-7xl mx-auto px-4 py-6">
 
         <!-- En-tête client -->
-        <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <div class="card mb-6">
             <div class="flex items-center justify-between flex-wrap gap-4">
                 <div>
                     <h1 class="text-xl font-bold text-slate-800"><?= htmlspecialchars($client->getNom()) ?></h1>
@@ -152,10 +152,10 @@ $pageTitle = "Récapitulatif des déclarations - " . $annee;
         </div>
 
         <!-- Tableau récapitulatif -->
-        <div class="bg-white rounded-lg shadow overflow-x-auto">
-            <table class="w-full text-sm">
+        <div class="card overflow-x-auto p-0">
+            <table class="table-clean text-sm">
                 <thead>
-                    <tr class="bg-slate-100 border-b">
+                    <tr>
                         <th class="px-4 py-3 text-left font-semibold text-slate-700">Mois</th>
                         <?php foreach ($colonnes as $libelle): ?>
                         <th class="px-3 py-3 montant font-semibold text-slate-700"><?= $libelle ?></th>
@@ -168,7 +168,7 @@ $pageTitle = "Récapitulatif des déclarations - " . $annee;
                 <tbody>
                     <?php for ($m = 1; $m <= 12; $m++):
                         $im = $impotsParMois[$m] ?? null; ?>
-                    <tr class="border-b hover:bg-slate-50 <?= $im ? '' : 'text-slate-400' ?>">
+                    <tr class="<?= $im ? '' : 'text-slate-400' ?>">
                         <td class="px-4 py-2 font-medium"><?= $moisNoms[$m] ?></td>
                         <?php foreach (array_keys($colonnes) as $col): ?>
                         <td class="px-3 py-2 montant"><?= $im ? fmtMontant((float) $im[$col]) : '-' ?></td>
