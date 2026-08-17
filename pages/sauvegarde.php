@@ -321,8 +321,8 @@ function formatSize($bytes) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sauvegarde - Gestion Fiscale</title>
     <!-- Utilisation des ressources locales pour le 100% Offline -->
-    <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/style.css?v=1.2">
+    <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css?v=1.2">
 </head>
 <body class="bg-gray-100 min-h-screen">
     <!-- Navigation -->
@@ -375,7 +375,7 @@ function formatSize($bytes) {
         <?php endif; ?>
         
         <!-- Info base actuelle -->
-        <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <div class="card mb-6">
             <h2 class="text-lg font-semibold text-gray-800 mb-4">
                 <i class="fas fa-database mr-2 text-gray-400"></i>
                 Base de données actuelle
@@ -441,15 +441,15 @@ function formatSize($bytes) {
                     </div>
                     
                     <input type="hidden" name="action" value="backup">
-                    <button type="submit" class="px-6 py-2 bg-green-700 text-white font-medium rounded-lg hover:bg-green-800 transition-colors shadow-sm">
-                        <i class="fas fa-download mr-2"></i> Sauvegarder .sqlite
+                    <button type="submit" class="btn-success">
+                        <i class="fas fa-download"></i> Sauvegarder .sqlite
                     </button>
                 </div>
             </form>
         </div>
 
         <!-- ========== TRANSFERT DE DONNÉES CLIENT ========== -->
-        <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <div class="card mb-6">
             <h2 class="text-lg font-semibold text-gray-800 mb-1">
                 <i class="fas fa-exchange-alt mr-2 text-indigo-500"></i>
                 Transfert de données entre ordinateurs
@@ -510,8 +510,8 @@ function formatSize($bytes) {
                             </div>
                         </div>
                         
-                        <button type="submit" class="w-full py-2.5 bg-green-700 text-white font-medium rounded-lg hover:bg-green-800 transition-colors text-sm">
-                            <i class="fas fa-file-export mr-2"></i> Exporter en fichier .json
+                        <button type="submit" class="btn-success w-full py-2.5 text-sm">
+                            <i class="fas fa-file-export"></i> Exporter en fichier .json
                         </button>
                     </form>
                     <p class="text-xs text-gray-400 mt-2"><i class="fas fa-info-circle mr-1"></i> Achats, dépenses, impôts, fournisseurs, paramètres fiscaux, exonérations.</p>
@@ -577,7 +577,7 @@ function formatSize($bytes) {
         
         <!-- Aperçu d'importation en attente -->
         <?php if ($transferPreview): ?>
-        <div class="bg-white rounded-xl shadow-sm p-6 mb-6 border-2 border-blue-400 relative">
+        <div class="card mb-6 border-2 border-blue-400 relative">
             <div class="absolute -top-3 left-4 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">
                 <i class="fas fa-eye mr-1"></i> Aperçu avant importation
             </div>
@@ -669,14 +669,14 @@ function formatSize($bytes) {
                 <form method="POST" class="flex-1">
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                     <input type="hidden" name="action" value="confirm_transfer">
-                    <button type="submit" class="w-full py-2.5 bg-green-700 text-white font-bold rounded-lg hover:bg-green-800 transition-colors">
-                        <i class="fas fa-check-circle mr-2"></i> Confirmer l'importation
+                    <button type="submit" class="btn-success w-full py-2.5">
+                        <i class="fas fa-check-circle"></i> Confirmer l'importation
                     </button>
                 </form>
                 <form method="POST">
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                     <input type="hidden" name="action" value="cancel_transfer">
-                    <button type="submit" class="px-6 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors">
+                    <button type="submit" class="btn-outline">
                         Annuler
                     </button>
                 </form>
@@ -687,7 +687,7 @@ function formatSize($bytes) {
         <!-- Export / Import CSV -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <!-- Export CSV -->
-            <div class="bg-white rounded-xl shadow-sm p-6 line-clamp-1">
+            <div class="card line-clamp-1">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4">
                     <i class="fas fa-file-export mr-2 text-primary-500"></i>
                     Exportation de données (CSV)
@@ -751,8 +751,8 @@ function formatSize($bytes) {
                         </div>
                     </div>
                     
-                    <button type="submit" class="w-full py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors">
-                        <i class="fas fa-file-csv mr-2"></i> Télécharger l'export CSV
+                    <button type="submit" class="btn-primary w-full">
+                        <i class="fas fa-file-csv"></i> Télécharger l'export CSV
                     </button>
                 </form>
             </div>
@@ -777,7 +777,7 @@ function formatSize($bytes) {
         </div>
         
         <!-- Liste des sauvegardes -->
-        <div class="bg-white rounded-xl shadow-sm">
+        <div class="card p-0">
             <div class="px-6 py-4 border-b border-gray-200">
                 <h2 class="text-lg font-semibold text-gray-800">
                     <i class="fas fa-history mr-2 text-gray-400"></i>
@@ -874,12 +874,12 @@ function formatSize($bytes) {
                 </label>
                 
                 <div class="flex justify-end space-x-3">
-                    <button type="button" onclick="closeRestoreModal()" 
-                            class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                    <button type="button" onclick="closeRestoreModal()"
+                            class="btn-outline">
                         Annuler
                     </button>
-                    <button type="submit" class="px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800">
-                        <i class="fas fa-undo mr-1"></i> Restaurer
+                    <button type="submit" class="btn-danger">
+                        <i class="fas fa-undo"></i> Restaurer
                     </button>
                 </div>
             </form>
