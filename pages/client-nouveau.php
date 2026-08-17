@@ -153,7 +153,7 @@ $typesActivite = Client::getTypesActivite();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nouveau client - Gestion Fiscale</title>
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/style.css?v=1.2">
     <script>
         tailwind.config = {
             theme: {
@@ -169,7 +169,7 @@ $typesActivite = Client::getTypesActivite();
             }
         }
     </script>
-    <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css?v=1.2">
 </head>
 <body class="bg-gray-100 min-h-screen">
     <!-- Navigation -->
