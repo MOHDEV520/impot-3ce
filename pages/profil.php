@@ -159,7 +159,7 @@ require_once APP_ROOT . '/includes/header.php';
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <!-- Colonne de gauche : Résumé / Avatar -->
             <div class="md:col-span-1 space-y-6">
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 text-center">
+                <div class="card text-center">
                     <div class="w-24 h-24 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl font-bold border-4 border-white shadow-md">
                         <?= strtoupper(substr($agent->getPrenom(), 0, 1) . substr($agent->getNom(), 0, 1)) ?>
                     </div>
@@ -170,7 +170,7 @@ require_once APP_ROOT . '/includes/header.php';
                     </span>
                 </div>
 
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <div class="card">
                     <h3 class="font-bold text-slate-800 mb-4 flex items-center text-sm uppercase tracking-wider">
                         <i class="fas fa-history mr-2 text-primary-500"></i> Historique du compte
                     </h3>
@@ -204,7 +204,7 @@ require_once APP_ROOT . '/includes/header.php';
                 </div>
 
                 <!-- Statistiques Portefeuille -->
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <div class="card">
                     <h3 class="font-bold text-slate-800 mb-4 flex items-center text-sm uppercase tracking-wider">
                         <i class="fas fa-chart-pie mr-2 text-indigo-500"></i> Portefeuille
                     </h3>
@@ -225,7 +225,7 @@ require_once APP_ROOT . '/includes/header.php';
             <!-- Colonne de droite : Formulaires -->
             <div class="md:col-span-2 space-y-8">
                 <!-- Informations Personnelles -->
-                <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-slate-200">
+                <div class="card overflow-hidden p-0">
                     <div class="bg-primary-50 px-6 py-4 border-b border-slate-200">
                         <h2 class="font-bold text-primary-800 flex items-center">
                             <i class="fas fa-user-circle mr-2"></i> Informations du profil
@@ -256,8 +256,8 @@ require_once APP_ROOT . '/includes/header.php';
                             </div>
 
                             <div class="pt-2">
-                                <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white font-bold py-2.5 px-6 rounded-lg transition duration-200 shadow hover:shadow-lg flex items-center">
-                                    <i class="fas fa-save mr-2"></i> Mettre à jour mon profil
+                                <button type="submit" class="btn-primary py-2.5 px-6">
+                                    <i class="fas fa-save"></i> Mettre à jour mon profil
                                 </button>
                             </div>
                         </form>
@@ -265,7 +265,7 @@ require_once APP_ROOT . '/includes/header.php';
                 </div>
 
                 <!-- Changement de mot de passe -->
-                <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-slate-200">
+                <div class="card overflow-hidden p-0">
                     <div class="bg-amber-50 px-6 py-4 border-b border-slate-200">
                         <h2 class="font-bold text-amber-800 flex items-center">
                             <i class="fas fa-key mr-2"></i> Sécurité du compte
@@ -306,7 +306,7 @@ require_once APP_ROOT . '/includes/header.php';
                 </div>
 
                 <!-- Mise à jour de l'application -->
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mt-6">
+                <div class="card overflow-hidden mt-6 p-0">
                     <div class="border-b border-slate-100 bg-slate-50/50 px-6 py-4 flex items-center">
                         <i class="fas fa-sync-alt text-blue-600 mr-3"></i>
                         <h2 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Mise à jour de l'application</h2>
