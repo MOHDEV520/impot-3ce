@@ -222,8 +222,8 @@ $pageTitle = "Gestion des Dépenses - " . htmlspecialchars($client['nom']);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $pageTitle ?></title>
-    <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/style.css?v=1.2">
+    <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css?v=1.2">
 </head>
 <body class="bg-slate-100 min-h-screen">
     <?php include APP_ROOT . '/includes/navbar-impots.php'; ?>
@@ -231,7 +231,7 @@ $pageTitle = "Gestion des Dépenses - " . htmlspecialchars($client['nom']);
     <main class="max-w-7xl mx-auto px-4 py-2">
         <!-- Messages -->
         <?php if ($message): ?>
-        <div class="mb-4 p-4 rounded-lg <?= $messageType === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' ?>">
+        <div class="mb-4 p-4 rounded-lg border-l-4 <?= $messageType === 'success' ? 'bg-green-50 border-green-500 text-green-700' : 'bg-red-50 border-red-500 text-red-700' ?>">
             <?= htmlspecialchars($message) ?>
         </div>
         <?php endif; ?>
@@ -240,19 +240,19 @@ $pageTitle = "Gestion des Dépenses - " . htmlspecialchars($client['nom']);
         <div class="flex items-center justify-between mb-4">
             <h1 class="text-xl font-bold text-slate-800">Gestion des Dépenses</h1>
             <div class="flex space-x-3">
-                <button onclick="ouvrirModal()" class="inline-flex items-center px-4 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition">
-                    <i class="fas fa-plus mr-2"></i> Ajouter Dépense
+                <button onclick="ouvrirModal()" class="btn-primary">
+                    <i class="fas fa-plus"></i> Ajouter Dépense
                 </button>
-                <button onclick="ouvrirModalNature()" class="inline-flex items-center px-4 py-2 bg-green-700 text-white font-medium rounded-lg hover:bg-green-800 transition">
-                    <i class="fas fa-folder-plus mr-2"></i> Nouvelle Nature
+                <button onclick="ouvrirModalNature()" class="btn-success">
+                    <i class="fas fa-folder-plus"></i> Nouvelle Nature
                 </button>
             </div>
         </div>
 
         <!-- Tableau des dépenses -->
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-            <table class="w-full">
-                <thead class="bg-slate-50 border-b">
+        <div class="card overflow-hidden p-0">
+            <table class="table-clean">
+                <thead>
                     <tr>
                         <th class="px-6 py-3 text-left text-sm font-medium text-slate-600">Nature</th>
                         <th class="px-4 py-3 text-left text-sm font-medium text-slate-600">Description</th>
@@ -261,7 +261,7 @@ $pageTitle = "Gestion des Dépenses - " . htmlspecialchars($client['nom']);
                         <th class="px-4 py-3 text-center text-sm font-medium text-slate-600">Action</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
+                <tbody>
                     <?php if (empty($depenses)): ?>
                     <tr>
                         <td colspan="5" class="px-6 py-12 text-center text-slate-500">
@@ -273,7 +273,7 @@ $pageTitle = "Gestion des Dépenses - " . htmlspecialchars($client['nom']);
                     <?php foreach ($depenses as $depense): 
                         $dateAffichee = $depense['date_saisie'] ?? date('Y-m-d');
                     ?>
-                    <tr class="hover:bg-slate-50">
+                    <tr>
                         <td class="px-6 py-4">
                             <span class="text-primary-600 font-medium"><?= htmlspecialchars($depense['nature_libelle'] ?? 'N/A') ?></span>
                         </td>
@@ -290,16 +290,16 @@ $pageTitle = "Gestion des Dépenses - " . htmlspecialchars($client['nom']);
                             <div class="flex justify-center space-x-2">
                                 <button type="button"
                                         data-depense="<?= htmlspecialchars(json_encode($depense, JSON_UNESCAPED_UNICODE | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP), ENT_QUOTES, 'UTF-8') ?>"
-                                        onclick="ouvrirModificationFromBtn(this)" 
-                                        class="inline-flex items-center px-3 py-1.5 bg-primary-600 text-white text-sm rounded hover:bg-primary-700">
-                                    <i class="fas fa-edit mr-1"></i> Modifier
+                                        onclick="ouvrirModificationFromBtn(this)"
+                                        class="btn-primary px-3 py-1.5 text-sm">
+                                    <i class="fas fa-edit"></i> Modifier
                                 </button>
                                 <form method="POST" class="inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette dépense ?');">
                                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                                     <input type="hidden" name="action" value="supprimer">
                                     <input type="hidden" name="depense_id" value="<?= $depense['id'] ?>">
-                                    <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-red-700 text-white text-sm rounded hover:bg-red-800">
-                                        <i class="fas fa-trash mr-1"></i> Supprimer
+                                    <button type="submit" class="btn-danger px-3 py-1.5 text-sm">
+                                        <i class="fas fa-trash"></i> Supprimer
                                     </button>
                                 </form>
                             </div>
@@ -379,11 +379,11 @@ $pageTitle = "Gestion des Dépenses - " . htmlspecialchars($client['nom']);
                 </div>
                 
                 <div class="px-6 py-4 bg-slate-50 border-t flex justify-end space-x-3 shrink-0 rounded-b-xl">
-                    <button type="button" onclick="fermerModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 transition">
+                    <button type="button" onclick="fermerModal()" class="btn-outline">
                         Annuler
                     </button>
-                    <button type="submit" class="px-6 py-2 bg-primary-600 text-white font-bold rounded-lg hover:bg-primary-700 transition shadow-lg">
-                        <i class="fas fa-save mr-2"></i> Enregistrer
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i> Enregistrer
                     </button>
                 </div>
             </form>
@@ -431,11 +431,11 @@ $pageTitle = "Gestion des Dépenses - " . htmlspecialchars($client['nom']);
                 </div>
                 
                 <div class="mt-6 flex justify-end space-x-3">
-                    <button type="button" onclick="fermerModalNature()" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50">
+                    <button type="button" onclick="fermerModalNature()" class="btn-outline">
                         Annuler
                     </button>
-                    <button type="submit" class="px-6 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800">
-                        <i class="fas fa-plus mr-2"></i> Créer
+                    <button type="submit" class="btn-success">
+                        <i class="fas fa-plus"></i> Créer
                     </button>
                 </div>
             </form>
