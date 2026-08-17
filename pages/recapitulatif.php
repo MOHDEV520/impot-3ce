@@ -253,8 +253,8 @@ $pageTitle = "Récapitulatif - " . htmlspecialchars($client['nom']);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $pageTitle ?></title>
-    <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/style.css?v=1.2">
+    <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css?v=1.2">
     <style>
         @media print {
             .no-print { display: none !important; }
@@ -288,7 +288,7 @@ $pageTitle = "Récapitulatif - " . htmlspecialchars($client['nom']);
     <main class="max-w-7xl mx-auto px-4 py-6">
         <!-- Message -->
         <?php if ($message): ?>
-        <div class="mb-4 p-4 rounded-lg <?= $messageType === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700' ?>">
+        <div class="mb-4 p-4 rounded-lg border-l-4 <?= $messageType === 'error' ? 'bg-red-50 border-red-500 text-red-700' : 'bg-green-50 border-green-500 text-green-700' ?>">
             <i class="fas <?= $messageType === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle' ?> mr-2"></i>
             <?= htmlspecialchars($message) ?>
         </div>
@@ -305,7 +305,7 @@ $pageTitle = "Récapitulatif - " . htmlspecialchars($client['nom']);
         </div>
 
         <!-- ========== 1. EN-TÊTE CLIENT + RÉSUMÉ ========== -->
-        <div class="bg-white rounded-xl shadow-sm p-6 mb-4 section-box">
+        <div class="card mb-4 section-box">
             <div class="flex items-center justify-between mb-4">
                 <div>
                     <h1 class="text-2xl font-bold text-slate-800"><?= htmlspecialchars($client['nom']) ?></h1>
@@ -324,21 +324,21 @@ $pageTitle = "Récapitulatif - " . htmlspecialchars($client['nom']);
                 </div>
                 <div class="text-right no-print flex items-center space-x-2">
                     <?php if ($compteGestion['statut'] !== 'valide' && $compteGestion['statut'] !== 'verrouille'): ?>
-                    <button type="button" onclick="ouvrirModalValidation()" class="inline-flex items-center px-4 py-2.5 bg-green-700 text-white font-semibold rounded-lg hover:bg-green-800 shadow-sm">
-                        <i class="fas fa-check mr-2"></i> VALIDER CE MOIS
+                    <button type="button" onclick="ouvrirModalValidation()" class="btn-success py-2.5">
+                        <i class="fas fa-check"></i> VALIDER CE MOIS
                     </button>
                     <?php endif; ?>
                     <div class="h-8 w-px bg-slate-200"></div>
-                    <a href="annexe-tva.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" class="inline-flex items-center px-3 py-2 text-sm text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50" title="Annexe TVA">
-                        <i class="fas fa-file-alt mr-2 text-amber-600"></i> Annexe TVA
+                    <a href="annexe-tva.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" class="btn-outline px-3 py-2 text-sm" title="Annexe TVA">
+                        <i class="fas fa-file-alt text-amber-600"></i> Annexe TVA
                     </a>
-                    <a href="annexe-exoneration.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" class="inline-flex items-center px-3 py-2 text-sm text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50" title="Annexe Exonération">
-                        <i class="fas fa-file-alt mr-2 text-purple-600"></i> Exonération
+                    <a href="annexe-exoneration.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" class="btn-outline px-3 py-2 text-sm" title="Annexe Exonération">
+                        <i class="fas fa-file-alt text-purple-600"></i> Exonération
                     </a>
-                    <a href="recap-paiements.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" class="inline-flex items-center px-3 py-2 text-sm text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50" title="Récap Paiements">
-                        <i class="fas fa-file-pdf mr-2 text-red-600"></i> Paiements
+                    <a href="recap-paiements.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" class="btn-outline px-3 py-2 text-sm" title="Récap Paiements">
+                        <i class="fas fa-file-pdf text-red-600"></i> Paiements
                     </a>
-                    <button onclick="window.print()" class="inline-flex items-center px-3 py-2 text-sm text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50" title="Imprimer">
+                    <button onclick="window.print()" class="btn-outline px-3 py-2 text-sm" title="Imprimer">
                         <i class="fas fa-print"></i>
                     </button>
                 </div>
@@ -419,7 +419,7 @@ $pageTitle = "Récapitulatif - " . htmlspecialchars($client['nom']);
         </div>
 
         <!-- ========== 2. CHIFFRE D'AFFAIRES ========== -->
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-4 section-box">
+        <div class="card overflow-hidden mb-4 section-box p-0">
             <div class="bg-green-700 text-white px-4 py-2 section-header">
                 <i class="fas fa-chart-line mr-2"></i> CHIFFRE D'AFFAIRES
             </div>
@@ -452,7 +452,7 @@ $pageTitle = "Récapitulatif - " . htmlspecialchars($client['nom']);
         </div>
         
         <!-- ========== 2b. TVA ========== -->
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-4 section-box">
+        <div class="card overflow-hidden mb-4 section-box p-0">
             <div class="bg-purple-600 text-white px-4 py-2 section-header">
                 <i class="fas fa-percentage mr-2"></i> TVA
             </div>
@@ -477,7 +477,7 @@ $pageTitle = "Récapitulatif - " . htmlspecialchars($client['nom']);
         </div>
 
         <!-- ========== 2c. RÉCAPITULATIF DES IMPÔTS ========== -->
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-4 section-box mt-4">
+        <div class="card overflow-hidden mb-4 mt-4 section-box p-0">
             <div class="bg-red-700 text-white px-4 py-2 section-header">
                 <i class="fas fa-file-invoice-dollar mr-2"></i> RÉSUMÉ DES IMPÔTS À PAYER
             </div>
@@ -542,7 +542,7 @@ $pageTitle = "Récapitulatif - " . htmlspecialchars($client['nom']);
         </div>
 
         <!-- ========== 3. ACHATS FOURNISSEURS ========== -->
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-4 section-box">
+        <div class="card overflow-hidden mb-4 section-box p-0">
             <div class="bg-blue-600 text-white px-4 py-2 section-header">
                 <i class="fas fa-shopping-cart mr-2"></i> ACHATS FOURNISSEURS
             </div>
@@ -604,7 +604,7 @@ $pageTitle = "Récapitulatif - " . htmlspecialchars($client['nom']);
         </div>
 
         <!-- ========== 4. DÉPENSES (incluant impôts) ========== -->
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-4 section-box">
+        <div class="card overflow-hidden mb-4 section-box p-0">
             <div class="bg-orange-600 text-white px-4 py-2 section-header">
                 <i class="fas fa-receipt mr-2"></i> DÉPENSES (incluant impôts déclarés)
             </div>
