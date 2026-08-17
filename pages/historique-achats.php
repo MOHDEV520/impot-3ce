@@ -138,8 +138,8 @@ $pageTitle = "Historique des Achats - " . htmlspecialchars($client['nom']);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $pageTitle ?></title>
-    <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/style.css?v=1.2">
+    <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css?v=1.2">
     <style>
         .print-header { display: none; }
 
@@ -230,7 +230,7 @@ $pageTitle = "Historique des Achats - " . htmlspecialchars($client['nom']);
         <h1 class="text-2xl font-bold text-slate-800 mb-6 no-print">Historique des Achats</h1>
 
         <!-- Filtres -->
-        <form method="GET" class="bg-white rounded-lg shadow-sm border p-4 mb-6 no-print">
+        <form method="GET" class="card p-4 mb-6 no-print">
             <input type="hidden" name="client" value="<?= $clientId ?>">
             <input type="hidden" name="mois_nav" value="<?= $moisCourant ?>">
             <input type="hidden" name="annee_nav" value="<?= $anneeCourant ?>">
@@ -274,12 +274,12 @@ $pageTitle = "Historique des Achats - " . htmlspecialchars($client['nom']);
 
                 <!-- Boutons -->
                 <div class="flex space-x-2">
-                    <button type="submit" class="px-5 py-2 bg-slate-700 text-white font-medium rounded-lg hover:bg-slate-800 transition">
-                        <i class="fas fa-filter mr-1"></i> Filtrer
+                    <button type="submit" class="btn-secondary">
+                        <i class="fas fa-filter"></i> Filtrer
                     </button>
-                    <a href="historique-achats.php?client=<?= $clientId ?>&mois_nav=<?= $moisCourant ?>&annee_nav=<?= $anneeCourant ?>" 
-                       class="px-4 py-2 bg-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-300 transition text-sm flex items-center">
-                        <i class="fas fa-times mr-1"></i> Réinitialiser
+                    <a href="historique-achats.php?client=<?= $clientId ?>&mois_nav=<?= $moisCourant ?>&annee_nav=<?= $anneeCourant ?>"
+                       class="btn-outline">
+                        <i class="fas fa-times"></i> Réinitialiser
                     </a>
                 </div>
             </div>
@@ -288,17 +288,17 @@ $pageTitle = "Historique des Achats - " . htmlspecialchars($client['nom']);
         <!-- Résumé -->
         <?php if (!empty($achats)): ?>
         <div class="grid grid-cols-3 gap-4 mb-6 summary-cards">
-            <div class="bg-white rounded-lg shadow-sm border p-4 text-center">
-                <div class="text-xs text-slate-500 uppercase font-medium">Total HT</div>
-                <div class="text-lg font-bold text-primary-700 mt-1"><?= formatMontant($totalHT) ?> F CFA</div>
+            <div class="card-stat card-stat-accent text-center">
+                <div class="card-stat-label uppercase">Total HT</div>
+                <div class="card-stat-value text-lg text-primary-700"><?= formatMontant($totalHT) ?> F CFA</div>
             </div>
-            <div class="bg-white rounded-lg shadow-sm border p-4 text-center">
-                <div class="text-xs text-slate-500 uppercase font-medium">Total TVA</div>
-                <div class="text-lg font-bold text-slate-600 mt-1"><?= formatMontant($totalTVA) ?> F CFA</div>
+            <div class="card-stat card-stat-neutral text-center">
+                <div class="card-stat-label uppercase">Total TVA</div>
+                <div class="card-stat-value text-lg text-slate-600"><?= formatMontant($totalTVA) ?> F CFA</div>
             </div>
-            <div class="bg-white rounded-lg shadow-sm border p-4 text-center">
-                <div class="text-xs text-slate-500 uppercase font-medium">Total TTC</div>
-                <div class="text-lg font-bold text-primary-800 mt-1"><?= formatMontant($totalTTC) ?> F CFA</div>
+            <div class="card-stat card-stat-accent text-center">
+                <div class="card-stat-label uppercase">Total TTC</div>
+                <div class="card-stat-value text-lg text-primary-800"><?= formatMontant($totalTTC) ?> F CFA</div>
             </div>
         </div>
         <?php endif; ?>
@@ -315,16 +315,16 @@ $pageTitle = "Historique des Achats - " . htmlspecialchars($client['nom']);
                 <?php endif; ?>
             </span>
             <?php if (!empty($achats)): ?>
-            <button onclick="window.print()" class="no-print inline-flex items-center px-4 py-2 bg-primary-700 text-white text-sm font-medium rounded-lg hover:bg-primary-800 transition">
-                <i class="fas fa-print mr-2"></i> Imprimer
+            <button onclick="window.print()" class="btn-primary no-print">
+                <i class="fas fa-print"></i> Imprimer
             </button>
             <?php endif; ?>
         </div>
 
         <!-- Tableau des achats -->
-        <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
-            <table class="w-full">
-                <thead class="bg-slate-50 border-b">
+        <div class="card overflow-hidden p-0">
+            <table class="table-clean">
+                <thead>
                     <tr>
                         <th class="px-3 py-3 text-left text-xs font-semibold text-slate-700">Période</th>
                         <th class="px-3 py-3 text-left text-xs font-semibold text-slate-700">Date Document</th>
@@ -337,7 +337,7 @@ $pageTitle = "Historique des Achats - " . htmlspecialchars($client['nom']);
                         <th class="px-3 py-3 text-right text-xs font-semibold text-slate-700">Montant TTC</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
+                <tbody>
                     <?php if (empty($achats)): ?>
                     <tr>
                         <td colspan="9" class="px-4 py-8 text-center text-slate-500">
@@ -356,7 +356,7 @@ $pageTitle = "Historique des Achats - " . htmlspecialchars($client['nom']);
                         $showPeriode = ($periode !== $currentPeriode);
                         if ($showPeriode) $currentPeriode = $periode;
                     ?>
-                    <tr class="hover:bg-slate-50<?= $showPeriode && $currentPeriode !== $periode ? '' : '' ?>">
+                    <tr>
                         <td class="px-3 py-2.5 text-sm">
                             <?php if ($showPeriode): ?>
                             <span class="font-semibold text-primary-700"><?= $periode ?></span>
@@ -381,9 +381,9 @@ $pageTitle = "Historique des Achats - " . htmlspecialchars($client['nom']);
                             <?php 
                             $nature = $achat['nature_operation'] ?? 'achat';
                             if ($nature === 'service'): ?>
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">Service</span>
+                                <span class="badge bg-blue-100 text-blue-700">Service</span>
                             <?php else: ?>
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">Achats</span>
+                                <span class="badge bg-green-100 text-green-700">Achats</span>
                             <?php endif; ?>
                         </td>
                         <td class="px-3 py-2.5 text-sm text-right font-medium text-primary-700">
