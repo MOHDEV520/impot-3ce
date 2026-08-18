@@ -70,6 +70,7 @@ CREATE TABLE parametres_fiscaux (
     location_actif BOOLEAN DEFAULT 0,
     irf_tf_actif BOOLEAN DEFAULT 0,
     css_actif BOOLEAN DEFAULT 1,
+    taxe_touristique_actif BOOLEAN DEFAULT 0,
     
     -- Location (si applicable)
     valeur_locative_mensuelle DECIMAL(15,2) DEFAULT 0,
@@ -148,6 +149,11 @@ CREATE TABLE compte_gestion_mensuel (
     tva_ligne118 DECIMAL(15,2) DEFAULT 0,
     tva_ligne120 DECIMAL(15,2) DEFAULT 0,
     
+    -- Taxe Touristique (Loi n°96-052) - lignes 110/510/520
+    taxe_touristique_type VARCHAR(20) DEFAULT '',
+    taxe_touristique_ligne510 DECIMAL(15,2) DEFAULT 0,
+    taxe_touristique_ligne520 DECIMAL(15,2) DEFAULT 0,
+
     -- Impôts directs et paramètres
     its DECIMAL(15,2) DEFAULT 0,
     marge DECIMAL(5,3) DEFAULT 1.30,
@@ -325,7 +331,13 @@ CREATE TABLE impots_mensuels (
     
     -- CSS
     css DECIMAL(15,2) DEFAULT 0,          -- 0.5%
-    
+
+    -- Retenue à la Source BIC/IS
+    ras DECIMAL(15,2) DEFAULT 0,
+
+    -- Taxe Touristique (Loi n°96-052) - Lig. 510 x 520
+    taxe_touristique DECIMAL(15,2) DEFAULT 0,
+
     -- Total
     total_impots DECIMAL(15,2) DEFAULT 0,
     

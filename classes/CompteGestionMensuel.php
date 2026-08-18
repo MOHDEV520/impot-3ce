@@ -67,6 +67,10 @@ class CompteGestionMensuel
     private float $rasLigne418 = 0;
     private float $rasLigne419 = 0;
     private float $rasLigne425 = 0;
+    // Taxe Touristique (Loi n°96-052) - lignes 110/510/520
+    private string $taxeTouristiqueType = ''; // 'hebergement' (500F/nuitée) ou 'transport' (2500F/passager)
+    private float $taxeTouristiqueLigne510 = 0; // Tarif par nuitée/passager
+    private float $taxeTouristiqueLigne520 = 0; // Nombre de nuitées ou de passagers
     private float $its = 0;
     private float $marge = 1.30;
     private float $margeTaxable = 1.30;
@@ -206,6 +210,10 @@ class CompteGestionMensuel
     public function getRasLigne418(): float { return $this->rasLigne418; }
     public function getRasLigne419(): float { return $this->rasLigne419; }
     public function getRasLigne425(): float { return $this->rasLigne425; }
+
+    public function getTaxeTouristiqueType(): string { return $this->taxeTouristiqueType; }
+    public function getTaxeTouristiqueLigne510(): float { return $this->taxeTouristiqueLigne510; }
+    public function getTaxeTouristiqueLigne520(): float { return $this->taxeTouristiqueLigne520; }
 
     public function getIts(): float
     {
@@ -371,6 +379,10 @@ class CompteGestionMensuel
     public function setRasLigne419(float $m): self { $this->rasLigne419 = round($m, 2); return $this; }
     public function setRasLigne425(float $m): self { $this->rasLigne425 = round($m, 2); return $this; }
 
+    public function setTaxeTouristiqueType(string $type): self { $this->taxeTouristiqueType = $type; return $this; }
+    public function setTaxeTouristiqueLigne510(float $m): self { $this->taxeTouristiqueLigne510 = round($m, 2); return $this; }
+    public function setTaxeTouristiqueLigne520(float $m): self { $this->taxeTouristiqueLigne520 = round($m, 2); return $this; }
+
     public function setIts(float $montant): self
     {
         if ($this->estVerrouille()) {
@@ -509,6 +521,9 @@ class CompteGestionMensuel
         $this->rasLigne418 = (float) ($data['ras_ligne418'] ?? 0);
         $this->rasLigne419 = (float) ($data['ras_ligne419'] ?? 0);
         $this->rasLigne425 = (float) ($data['ras_ligne425'] ?? 0);
+        $this->taxeTouristiqueType = (string) ($data['taxe_touristique_type'] ?? '');
+        $this->taxeTouristiqueLigne510 = (float) ($data['taxe_touristique_ligne510'] ?? 0);
+        $this->taxeTouristiqueLigne520 = (float) ($data['taxe_touristique_ligne520'] ?? 0);
         $this->its = (float) ($data['its'] ?? 0);
         $this->marge = (float) ($data['marge'] ?? 1.30);
         $this->margeTaxable = (float) ($data['marge_taxable'] ?? 1.30);
@@ -556,6 +571,7 @@ class CompteGestionMensuel
                 ras_ligne401 = ?, ras_ligne403 = ?, ras_ligne404 = ?, ras_ligne405 = ?, ras_ligne406 = ?,
                 ras_ligne411 = ?, ras_ligne412 = ?, ras_ligne413 = ?,
                 ras_ligne418 = ?, ras_ligne419 = ?, ras_ligne425 = ?,
+                taxe_touristique_type = ?, taxe_touristique_ligne510 = ?, taxe_touristique_ligne520 = ?,
                 its = ?, marge = ?, marge_taxable = ?,
                 statut = ?, date_modification = CURRENT_TIMESTAMP
             WHERE id = ?
@@ -588,6 +604,7 @@ class CompteGestionMensuel
             $this->rasLigne401, $this->rasLigne403, $this->rasLigne404, $this->rasLigne405, $this->rasLigne406,
             $this->rasLigne411, $this->rasLigne412, $this->rasLigne413,
             $this->rasLigne418, $this->rasLigne419, $this->rasLigne425,
+            $this->taxeTouristiqueType, $this->taxeTouristiqueLigne510, $this->taxeTouristiqueLigne520,
             $this->its,
             $this->marge,
             $this->margeTaxable,
@@ -1011,6 +1028,9 @@ class CompteGestionMensuel
             'ras_ligne412' => $this->rasLigne412, 'ras_ligne413' => $this->rasLigne413,
             'ras_ligne418' => $this->rasLigne418, 'ras_ligne419' => $this->rasLigne419,
             'ras_ligne425' => $this->rasLigne425,
+            'taxe_touristique_type' => $this->taxeTouristiqueType,
+            'taxe_touristique_ligne510' => $this->taxeTouristiqueLigne510,
+            'taxe_touristique_ligne520' => $this->taxeTouristiqueLigne520,
             'its' => $this->its,
             'marge' => $this->marge,
             'marge_taxable' => $this->margeTaxable,

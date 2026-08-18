@@ -65,6 +65,7 @@ $donnees = [
     'irf_tf_actif' => $parametres['irf_tf_actif'] ?? '0',
     'css_actif' => $parametres['css_actif'] ?? '1',
     'ras_actif' => $parametres['ras_actif'] ?? '0',
+    'taxe_touristique_actif' => $parametres['taxe_touristique_actif'] ?? '0',
     'sans_marges' => $parametres['sans_marges'] ?? '0',
     'marge' => $parametres['marge'] ?? '1.30',
     'marge_taxable' => $parametres['marge_taxable'] ?? '1.30',
@@ -102,6 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'irf_tf_actif' => isset($_POST['irf_tf_actif']) ? '1' : '0',
         'css_actif' => isset($_POST['css_actif']) ? '1' : '0',
         'ras_actif' => isset($_POST['ras_actif']) ? '1' : '0',
+        'taxe_touristique_actif' => isset($_POST['taxe_touristique_actif']) ? '1' : '0',
         'sans_marges' => isset($_POST['sans_marges']) ? '1' : '0',
         'marge' => trim($_POST['marge'] ?? '1.30'),
         'marge_taxable' => trim($_POST['marge_taxable'] ?? '1.30'),
@@ -145,6 +147,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'irf_tf_actif' => (int) $donnees['irf_tf_actif'],
                     'css_actif' => (int) $donnees['css_actif'],
                     'ras_actif' => (int) $donnees['ras_actif'],
+                    'taxe_touristique_actif' => (int) $donnees['taxe_touristique_actif'],
                     'sans_marges' => (int) $donnees['sans_marges'],
                     'marge' => (float) $donnees['marge'],
                     'marge_taxable' => (float) $donnees['marge_taxable'],
@@ -169,37 +172,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $secteurs = Client::getSecteurs();
 $regimes = Client::getRegimesFiscaux();
 $typesActivite = Client::getTypesActivite();
+
+$titrePage = 'Modifier ' . $client->getNom();
+require_once APP_ROOT . '/includes/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modifier <?= htmlspecialchars($client->getNom()) ?> - Gestion Fiscale</title>
-    <link rel="stylesheet" href="../assets/css/style.css?v=1.2">
-    <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css?v=1.2">
-</head>
-<body class="bg-gray-100 min-h-screen">
-    <!-- Navigation -->
-    <nav class="bg-primary-800 text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <div class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center mr-3">
-                        <i class="fas fa-calculator text-xl"></i>
-                    </div>
-                    <span class="text-xl font-bold">Gestion Fiscale</span>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-sm text-blue-200"><?= htmlspecialchars($agent->getNomComplet()) ?></span>
-                    <a href="logout.php" class="text-blue-200 hover:text-white"><i class="fas fa-sign-out-alt"></i></a>
-                </div>
-            </div>
-        </div>
-    </nav>
-    
-    <!-- Contenu -->
-    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Breadcrumb -->
         <nav class="flex mb-6" aria-label="Breadcrumb">
             <ol class="flex items-center space-x-2 text-sm">
@@ -210,20 +186,18 @@ $typesActivite = Client::getTypesActivite();
                 <li class="text-primary-600 font-medium">Modifier</li>
             </ol>
         </nav>
-        
+
         <!-- Titre -->
         <div class="mb-8">
             <h1 class="text-2xl font-bold text-gray-800">Modifier le client</h1>
             <p class="text-gray-500 mt-1"><?= htmlspecialchars($client->getNom()) ?></p>
         </div>
-        
+
         <!-- Erreur générale -->
         <?php if (isset($erreurs['general'])): ?>
-        <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-lg">
-            <div class="flex items-center">
-                <i class="fas fa-exclamation-circle mr-2"></i>
-                <span><?= htmlspecialchars($erreurs['general']) ?></span>
-            </div>
+        <div class="alert alert-error mb-6">
+            <i class="fas fa-exclamation-circle"></i>
+            <span><?= htmlspecialchars($erreurs['general']) ?></span>
         </div>
         <?php endif; ?>
         
@@ -406,6 +380,11 @@ $typesActivite = Client::getTypesActivite();
                                    class="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500">
                             <span class="ml-2 text-sm text-gray-600">Retenue à la Source BIC/IS</span>
                         </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="taxe_touristique_actif" value="1" <?= $donnees['taxe_touristique_actif'] == '1' ? 'checked' : '' ?>
+                                   class="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500">
+                            <span class="ml-2 text-sm text-gray-600">Taxe Touristique (hébergement, compagnies aériennes, agences de voyage)</span>
+                        </label>
                         <label class="flex items-center mt-3 p-2 bg-amber-50 border border-amber-200 rounded-lg">
                             <input type="checkbox" name="sans_marges" value="1" <?= $donnees['sans_marges'] == '1' ? 'checked' : '' ?>
                                    class="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500"
@@ -504,8 +483,7 @@ $typesActivite = Client::getTypesActivite();
                 </div>
             </div>
         </form>
-    </main>
-    
+
     <script>
         function toggleLocation() {
             const section = document.getElementById('location_section');
@@ -550,5 +528,4 @@ $typesActivite = Client::getTypesActivite();
         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(Agent::getCsrfToken()) ?>">
         <input type="hidden" name="client_id" value="<?= $clientId ?>">
     </form>
-</body>
-</html>
+<?php require_once APP_ROOT . '/includes/footer.php'; ?>

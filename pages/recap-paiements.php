@@ -180,8 +180,14 @@ $tvaLocation = $locationActif ? max(0, $locTvaCollectee - (float)($compteGestion
 // Retenue à la Source BIC/IS (si activée pour ce client)
 $ras = $rasActif ? Impot::calculerRetenueSourceBIC($compteGestion)['430'] : 0;
 
+// Taxe Touristique (Loi n°96-052) - Lig. 510 x 520, si activée pour ce client
+$taxeTouristiqueActif = $parametres ? (int)($parametres['taxe_touristique_actif'] ?? 0) : 0;
+$taxeTouristique = $taxeTouristiqueActif
+    ? round((float)($compteGestion['taxe_touristique_ligne510'] ?? 0) * (float)($compteGestion['taxe_touristique_ligne520'] ?? 0), 2)
+    : 0;
+
 // Total
-$totalImpots = $tvaNet + $cf + $tl + $its + $css + $irf + $tf + $tvaLocation + $ras;
+$totalImpots = $tvaNet + $cf + $tl + $its + $css + $irf + $tf + $tvaLocation + $ras + $taxeTouristique;
 
 // Formatage
 function formatMontant($montant) {
@@ -347,15 +353,25 @@ $dateGeneration = date('d/m/Y');
                 box-shadow: none;
                 min-height: auto;
             }
+            /* L'impression des couleurs de fond dépend du pilote d'imprimante et
+               des réglages système, qui varient d'un poste à l'autre (certains
+               postes n'impriment pas les fonds même avec print-color-adjust:exact).
+               Le texte blanc de l'entête et de la ligne de total ne doit donc jamais
+               reposer uniquement sur un fond sombre pour rester lisible : on bascule
+               sur du texte noir + un contour, qui s'imprime toujours. */
             thead th {
-                background: #333 !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
+                background: #fff !important;
+                color: #000 !important;
+                border-bottom: 2px solid #000;
             }
-            .total-row {
-                background: #333 !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
+            .total-row,
+            .total-row td {
+                background: #fff !important;
+                color: #000 !important;
+            }
+            .total-row td {
+                border-top: 2px solid #000;
+                border-bottom: 2px solid #000 !important;
             }
             tbody tr:nth-child(even) {
                 background: #f5f5f5 !important;
@@ -438,6 +454,12 @@ $dateGeneration = date('d/m/Y');
                     <tr>
                         <td>TVA sur Location</td>
                         <td class="<?= $tvaLocation == 0 ? 'zero' : '' ?>"><?= formatMontant($tvaLocation) ?></td>
+                    </tr>
+                    <?php endif; ?>
+                    <?php if ($taxeTouristiqueActif): ?>
+                    <tr>
+                        <td>Taxe Touristique</td>
+                        <td class="<?= $taxeTouristique == 0 ? 'zero' : '' ?>"><?= formatMontant($taxeTouristique) ?></td>
                     </tr>
                     <?php endif; ?>
                     <tr class="total-row">

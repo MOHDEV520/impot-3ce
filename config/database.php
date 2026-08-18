@@ -449,6 +449,9 @@ class Database
             'tva_ligne115' => 'DECIMAL(15,2) DEFAULT 0', 'tva_ligne116' => 'DECIMAL(15,2) DEFAULT 0', 
             'tva_ligne117' => 'DECIMAL(15,2) DEFAULT 0', 'tva_ligne118' => 'DECIMAL(15,2) DEFAULT 0', 
             'tva_ligne120' => 'DECIMAL(15,2) DEFAULT 0',
+            'taxe_touristique_type' => "VARCHAR(20) DEFAULT ''",
+            'taxe_touristique_ligne510' => 'DECIMAL(15,2) DEFAULT 0',
+            'taxe_touristique_ligne520' => 'DECIMAL(15,2) DEFAULT 0',
             'its' => 'DECIMAL(15,2) DEFAULT 0',
             'marge' => 'DECIMAL(5,3) DEFAULT 1.30',
             'marge_taxable' => 'DECIMAL(5,3) DEFAULT 1.30',
@@ -477,6 +480,7 @@ class Database
             'irf_tf_actif' => 'TINYINT(1) DEFAULT 0',
             'css_actif' => 'TINYINT(1) DEFAULT 1',
             'ras_actif' => 'TINYINT(1) DEFAULT 0',
+            'taxe_touristique_actif' => 'TINYINT(1) DEFAULT 0',
             'sans_marges' => 'TINYINT(1) DEFAULT 0'
         ];
 
@@ -509,6 +513,9 @@ class Database
             $this->ajouterColonneSiManquante('compte_gestion_mensuel', $colonne, $definition);
         }
         $this->ajouterColonneSiManquante('impots_mensuels', 'ras', 'DECIMAL(15,2) DEFAULT 0');
+
+        // 6. Colonne Taxe Touristique (Loi n°96-052)
+        $this->ajouterColonneSiManquante('impots_mensuels', 'taxe_touristique', 'DECIMAL(15,2) DEFAULT 0');
 
         // Index de performance pour usage professionnel
         $this->creerIndexSiManquant('achats', 'idx_achats_client_date', '(client_id, annee, mois)');

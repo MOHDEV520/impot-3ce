@@ -143,8 +143,9 @@ $impotsAnnuels = $db->fetchOne(
             SUM(tva_location) as tva_location_total,
             SUM(tf) as tf_total,
             SUM(css) as css_total,
+            SUM(taxe_touristique) as taxe_touristique_total,
             SUM(total_impots) as total_general
-     FROM impots_mensuels 
+     FROM impots_mensuels
      WHERE client_id = ? AND annee = ?",
     [$clientId, $annee]
 );
@@ -158,7 +159,8 @@ $irfAnnuel = (float)($impotsAnnuels['irf_total'] ?? 0);
 $tvaLocationAnnuel = (float)($impotsAnnuels['tva_location_total'] ?? 0);
 $tfAnnuel = (float)($impotsAnnuels['tf_total'] ?? 0);
 $cssAnnuel = (float)($impotsAnnuels['css_total'] ?? 0);
-$totalImpotsAnnuel = $tvaAnnuel + $cfAnnuel + $itsImpotsAnnuel + $tlAnnuel + $irfAnnuel + $tvaLocationAnnuel + $tfAnnuel + $cssAnnuel;
+$taxeTouristiqueAnnuel = (float)($impotsAnnuels['taxe_touristique_total'] ?? 0);
+$totalImpotsAnnuel = $tvaAnnuel + $cfAnnuel + $itsImpotsAnnuel + $tlAnnuel + $irfAnnuel + $tvaLocationAnnuel + $tfAnnuel + $cssAnnuel + $taxeTouristiqueAnnuel;
 
 // Si la table impots_mensuels est vide, recalculer
 if ($totalImpotsAnnuel == 0 && $caGlobalAnnuel > 0) {
@@ -203,7 +205,7 @@ $pageTitle = "Rapport Annuel " . $annee . " - " . htmlspecialchars($client['nom'
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $pageTitle ?></title>
-    <link rel="stylesheet" href="../assets/css/style.css?v=1.2">
+    <link rel="stylesheet" href="../assets/css/style.css?v=1.3">
     <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css?v=1.2">
     <script src="../assets/vendor/chartjs/chart.min.js"></script>
     <style>
@@ -336,7 +338,7 @@ $pageTitle = "Rapport Annuel " . $annee . " - " . htmlspecialchars($client['nom'
         <!-- ============================================ -->
         <!-- CA GLOBAL DÉCLARÉ -->
         <!-- ============================================ -->
-        <div class="ca-banner bg-blue-100 text-blue-900 rounded-xl p-6 mb-8 shadow-md rapport-card border-l-4 border-blue-600">
+        <div class="ca-banner bg-blue-100 text-blue-900 rounded-xl p-6 mb-8 shadow-md rapport-card border border-blue-200">
             <div class="text-sm font-bold text-blue-600 mb-1 uppercase tracking-wider">CA Global Déclaré</div>
             <div class="text-4xl font-extrabold tracking-tight text-black"><?= formatMontant($caGlobalAnnuel) ?> F CFA</div>
         </div>
@@ -445,6 +447,7 @@ $pageTitle = "Rapport Annuel " . $annee . " - " . htmlspecialchars($client['nom'
                             ['Impôt sur Revenus Fonciers (IRF)', $irfAnnuel],
                             ['Taxe Foncière (TF)', $tfAnnuel],
                             ['Contribution Spéciale Solidarité (CSS)', $cssAnnuel],
+                            ['Taxe Touristique', $taxeTouristiqueAnnuel],
                         ];
                         foreach ($lignesImpots as $li):
                             if ($li[1] > 0):

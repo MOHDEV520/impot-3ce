@@ -63,6 +63,7 @@ $locationActif = $parametresFiscaux ? (int)($parametresFiscaux['location_actif']
 $irfTfActif = $parametresFiscaux ? (int)($parametresFiscaux['irf_tf_actif'] ?? 0) : 0;
 $salairesActif = $parametresFiscaux ? (int)($parametresFiscaux['salaires_actif'] ?? 0) : 0;
 $rasActif = $parametresFiscaux ? (int)($parametresFiscaux['ras_actif'] ?? 0) : 0;
+$taxeTouristiqueActif = $parametresFiscaux ? (int)($parametresFiscaux['taxe_touristique_actif'] ?? 0) : 0;
 $typeTva = $parametresFiscaux ? ($parametresFiscaux['type_tva'] ?? 'non_exonere') : 'non_exonere';
 
 // Autres taux fiscaux
@@ -104,6 +105,19 @@ $cfLigne251 = (float)($_POST['cf_ligne251'] ?? $_GET['cf_ligne251'] ?? $compteGe
 
 // Ligne TL (chargée depuis POST/GET ou base)
 $tlLigne212 = (float)($_POST['tl_ligne212'] ?? $_GET['tl_ligne212'] ?? $compteGestion->getTlLigne212() ?? 0);
+
+// Taxe Touristique (Loi n°96-052) - lignes 110/510/520 (chargées depuis POST/GET ou base)
+$taxeTouristiqueTypeRaw = $_POST['taxe_touristique_type'] ?? $_GET['taxe_touristique_type'] ?? $compteGestion->getTaxeTouristiqueType();
+$taxeTouristiqueType = !empty($taxeTouristiqueTypeRaw) ? $taxeTouristiqueTypeRaw : 'hebergement';
+$taxeTouristiqueLigne510Raw = $_POST['taxe_touristique_ligne510'] ?? $_GET['taxe_touristique_ligne510'] ?? null;
+if ($taxeTouristiqueLigne510Raw !== null) {
+    $taxeTouristiqueLigne510 = (float) $taxeTouristiqueLigne510Raw;
+} else {
+    $tarifSauvegarde = $compteGestion->getTaxeTouristiqueLigne510();
+    // Tarifs légaux Art.5 : 500 F/nuitée (hébergement) ou 2 500 F/passager (transport)
+    $taxeTouristiqueLigne510 = $tarifSauvegarde > 0 ? $tarifSauvegarde : ($taxeTouristiqueType === 'transport' ? 2500 : 500);
+}
+$taxeTouristiqueLigne520 = (float)($_POST['taxe_touristique_ligne520'] ?? $_GET['taxe_touristique_ligne520'] ?? $compteGestion->getTaxeTouristiqueLigne520() ?? 0);
 
 // Lignes TVA (chargées depuis POST/GET ou base)
 $tvaLigne82 = (float)($_POST['tva_ligne82'] ?? $_GET['tva_ligne82'] ?? $compteGestion->getTvaLigne82() ?? 0);
@@ -167,7 +181,6 @@ $achatsTaxable = ($tvaDeductible > 0) ? round($tvaDeductible / $tauxTVADecimal) 
 if ($margeSelectionnee == 0) {
     // Marge Global = 0 : CA Global saisi manuellement
     $caGlobal = $compteGestion->getCaGlobal();
-    $caExonere = $compteGestion->getCaExonere();
 } else {
     // Marge Global != 0 : CA Global = Achats HT × Marge
     $caGlobal = round($achatsHT * $margeSelectionnee);
@@ -186,28 +199,37 @@ if ($typeTva === 'exonere_total') {
     $caTaxable = 0;
 }
 
-// CA Exonéré = CA Global - CA Taxable
-if ($margeSelectionnee != 0 || $margeTaxableSelectionnee != 0) {
-    if ($typeTva === 'exonere_total') {
-        $caExonere = $caGlobal;
-    } else {
-        $caExonere = max(0, $caGlobal - $caTaxable);
-    }
-} else {
+// CA Exonéré (Ligne 81) : saisi à la main quand Marge CA Taxable = 0 (calcul manuel),
+// sinon estimé automatiquement via CA Global - CA Taxable (Achats Taxable × Marge
+// Taxable) quand la marge est active (calcul automatique). Ce choix ne dépend que de
+// la Marge CA Taxable, pas de la Marge CA Global (les deux pickers sont indépendants).
+if ($margeTaxableSelectionnee == 0) {
     $caExonere = $compteGestion->getCaExonere();
+} elseif ($typeTva === 'exonere_total') {
+    $caExonere = $caGlobal;
+} else {
+    $caExonere = max(0, $caGlobal - $caTaxable);
 }
+
+// Base taxable officielle : Ligne 100 = Ligne 80 - Ligne 95, TOUJOURS — jamais de saisie
+// manuelle directe sur cette ligne (elle se déduit uniquement de la Ligne 80 et des
+// exonérations 81-86, quelle que soit leur propre origine manuelle ou automatique).
+// Calculée UNE SEULE FOIS ici et réutilisée partout (résumé écran, tableau officiel)
+// pour qu'il n'existe plus qu'une seule base de calcul de la TVA collectée dans la page.
+$ligne95Global = $caExonere + $tvaLigne82 + $tvaLigne83 + $tvaLigne84 + $tvaLigne85 + $tvaLigne86;
+$ligne100Global = max(0, $caGlobal - $ligne95Global);
 
 // Calculs TVA COMPLET (Format Officiel)
 if ($tauxTVADouble) {
     // Double taux : ligne 102 (base 5%) et reste (base 18%)
     $ligne102 = $tvaLigne102;
     $val105 = round(($ligne102 + $tvaLigne103) * 5 / 100);
-    $ligne106 = max(0, $caTaxable - $ligne102);
+    $ligne106 = max(0, $ligne100Global - $ligne102);
     $val109 = round(($ligne106 + $tvaLigne107) * 18 / 100);
 } else {
     // Taux unique
-    $val105 = ($tauxTVA == 5) ? round(($caTaxable + $tvaLigne103) * 5 / 100) : 0;
-    $val109 = ($tauxTVA == 18) ? round(($caTaxable + $tvaLigne107) * 18 / 100) : 0;
+    $val105 = ($tauxTVA == 5) ? round(($ligne100Global + $tvaLigne103) * 5 / 100) : 0;
+    $val109 = ($tauxTVA == 18) ? round(($ligne100Global + $tvaLigne107) * 18 / 100) : 0;
 }
 $tvaBrute = $val105 + $val109 + $tvaLigne110;
 
@@ -238,8 +260,11 @@ $locRevenuPassible = max(0, $loyersPercus - $locExonerations);
 $tvaLocationCollectee = round($locRevenuPassible * 18 / 100); // TVA/Location toujours à 18%
 $tvaLocation = $locationActif ? max(0, $tvaLocationCollectee - $locLigne145) : 0;
 
+// Taxe Touristique : Lig. 810 = Lig. 510 (tarif) x Lig. 520 (nuitées/passagers)
+$taxeTouristique = $taxeTouristiqueActif ? round($taxeTouristiqueLigne510 * $taxeTouristiqueLigne520, 2) : 0;
+
 // Total général
-$totalImpots = $tvaNette + $cf + $tl + $its + $tf + $irf + $css + $tvaLocation + $ras;
+$totalImpots = $tvaNette + $cf + $tl + $its + $tf + $irf + $css + $tvaLocation + $ras + $taxeTouristique;
 
 // Type d'impôt sélectionné (avec protection contre les types désactivés)
 $typeImpot = $_GET['type'] ?? 'tva';
@@ -247,6 +272,7 @@ if (in_array($typeImpot, ['tf', 'irf']) && !$irfTfActif) $typeImpot = 'tva';
 if ($typeImpot === 'tva-location' && !$locationActif) $typeImpot = 'tva';
 if (in_array($typeImpot, ['cf', 'tl', 'its']) && !$salairesActif) $typeImpot = 'tva';
 if ($typeImpot === 'ras' && !$rasActif) $typeImpot = 'tva';
+if ($typeImpot === 'taxe_touristique' && !$taxeTouristiqueActif) $typeImpot = 'tva';
 
 // Traitement formulaire
 $message = '';
@@ -268,7 +294,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $postMasseSalariale = (float) str_replace([' ', ','], ['', '.'], $_POST['masse_salariale'] ?? 0);
             $postLoyersPercus = (float) str_replace([' ', ','], ['', '.'], $_POST['loyers_percus'] ?? 0);
             $postIts = (float) str_replace([' ', ','], ['', '.'], $_POST['its'] ?? 0);
-            
+
+            // Taxe Touristique
+            $postTaxeTouristiqueType = $_POST['taxe_touristique_type'] ?? 'hebergement';
+            $postTaxeTouristiqueLigne510 = (float) str_replace([' ', ','], ['', '.'], $_POST['taxe_touristique_ligne510'] ?? 0);
+            $postTaxeTouristiqueLigne520 = (float) str_replace([' ', ','], ['', '.'], $_POST['taxe_touristique_ligne520'] ?? 0);
+
             // Lignes TVA Location
             $postLocLigne132 = (float) str_replace([' ', ','], ['', '.'], $_POST['loc_ligne132'] ?? 0);
             $postLocLigne133 = (float) str_replace([' ', ','], ['', '.'], $_POST['loc_ligne133'] ?? 0);
@@ -367,23 +398,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                           ->setRasLigne418($postRasLigne418)
                           ->setRasLigne419($postRasLigne419)
                           ->setRasLigne425($postRasLigne425)
+                          ->setTaxeTouristiqueType($postTaxeTouristiqueType)
+                          ->setTaxeTouristiqueLigne510($postTaxeTouristiqueLigne510)
+                          ->setTaxeTouristiqueLigne520($postTaxeTouristiqueLigne520)
                           ->setIts($postIts)
                           ->setMarge($postMarge)
                           ->setMargeTaxable($postMargeTaxable);
             
-            // Si marge taxable = 0, écraser le CA Taxable avec la valeur saisie manuellement
-            // Correction : Supporte 'ca_taxable' (hidden) et 'ca_taxable_manual'
-            $postCaTaxable = (float) str_replace([' ', ','], ['', '.'], $_POST['ca_taxable_manual'] ?? $_POST['ca_taxable'] ?? 0);
-            if ($postCaTaxable > 0) {
-                $compteGestion->setCaTaxable($postCaTaxable);
-            }
-            
-            $compteGestion->sauvegarder();
-
-            // RECALCULER les totaux avec les nouvelles valeurs pour la table impots_mensuels
-            // (on utilise les variables postées pour être précis)
+            // CA Taxable (ligne 100) = Ligne 80 - Ligne 95, TOUJOURS — jamais de saisie manuelle
+            // directe sur cette valeur (voir plus haut et le tableau officiel). On la recalcule
+            // ici à partir des valeurs postées et on l'enregistre systématiquement, pour que
+            // compte_gestion_mensuel.ca_taxable (utilisé aussi par recapitulatif.php et
+            // rapport-annuel.php) ne diverge jamais de ce qui est affiché/enregistré ici.
             $ca_global_new = (float) str_replace([' ', ','], ['', '.'], $_POST['ca_global_manual'] ?? $_POST['ca_global'] ?? 0);
-            $ca_taxable_new = $postCaTaxable;
+            $ca_exonere_new = (float) str_replace([' ', ','], ['', '.'], $_POST['ca_exonere'] ?? 0);
+            $ligne95_new = $ca_exonere_new + $postTvaLigne82 + $postTvaLigne83 + $postTvaLigne84 + $postTvaLigne85 + $postTvaLigne86;
+            $ca_taxable_new = max(0, $ca_global_new - $ligne95_new);
+            $compteGestion->setCaTaxable($ca_taxable_new);
+
+            $compteGestion->sauvegarder();
             
             // CF
             $cf_brut_new = $postMasseSalariale + $postCfLigne243;
@@ -426,23 +459,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 '412' => $postRasLigne412, '413' => $postRasLigne413, '418' => $postRasLigne418,
                 '419' => $postRasLigne419, '425' => $postRasLigne425,
             ])['430'] : 0;
-            
-            $total_new = $tva_nette_new + $cf_new + $tl_new + $postIts + $tf_new + $irf_new + $css_new + $tva_loc_new + $ras_new;
+
+            $taxe_touristique_new = $taxeTouristiqueActif ? round($postTaxeTouristiqueLigne510 * $postTaxeTouristiqueLigne520, 2) : 0;
+
+            $total_new = $tva_nette_new + $cf_new + $tl_new + $postIts + $tf_new + $irf_new + $css_new + $tva_loc_new + $ras_new + $taxe_touristique_new;
 
             // Mise à jour de la table impots_mensuels pour les rapports
             $sqlCheck = "SELECT id FROM impots_mensuels WHERE client_id = ? AND mois = ? AND annee = ?";
             $existingImpots = $db->fetchOne($sqlCheck, [$clientId, $mois, $annee]);
-            
+
             if ($existingImpots) {
-                $sqlImpots = "UPDATE impots_mensuels SET 
-                    tva_a_payer = ?, cf = ?, its = ?, tl = ?, irf = ?, tf = ?, css = ?, tva_location = ?, ras = ?, total_impots = ?,
+                $sqlImpots = "UPDATE impots_mensuels SET
+                    tva_a_payer = ?, cf = ?, its = ?, tl = ?, irf = ?, tf = ?, css = ?, tva_location = ?, ras = ?, taxe_touristique = ?, total_impots = ?,
                     date_calcul = CURRENT_TIMESTAMP
                     WHERE id = ?";
-                $db->update($sqlImpots, [$tva_nette_new, $cf_new, $postIts, $tl_new, $irf_new, $tf_new, $css_new, $tva_loc_new, $ras_new, $total_new, $existingImpots['id']]);
+                $db->update($sqlImpots, [$tva_nette_new, $cf_new, $postIts, $tl_new, $irf_new, $tf_new, $css_new, $tva_loc_new, $ras_new, $taxe_touristique_new, $total_new, $existingImpots['id']]);
             } else {
-                $sqlImpots = "INSERT INTO impots_mensuels (client_id, compte_gestion_id, mois, annee, tva_a_payer, cf, its, tl, irf, tf, css, tva_location, ras, total_impots) 
-                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                $db->insert($sqlImpots, [$clientId, $compteGestion->getId(), $mois, $annee, $tva_nette_new, $cf_new, $postIts, $tl_new, $irf_new, $tf_new, $css_new, $tva_loc_new, $ras_new, $total_new]);
+                $sqlImpots = "INSERT INTO impots_mensuels (client_id, compte_gestion_id, mois, annee, tva_a_payer, cf, its, tl, irf, tf, css, tva_location, ras, taxe_touristique, total_impots)
+                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                $db->insert($sqlImpots, [$clientId, $compteGestion->getId(), $mois, $annee, $tva_nette_new, $cf_new, $postIts, $tl_new, $irf_new, $tf_new, $css_new, $tva_loc_new, $ras_new, $taxe_touristique_new, $total_new]);
             }
             
             $message = 'Données enregistrées avec succès.';
@@ -477,17 +512,20 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $pageTitle ?></title>
-    <link rel="stylesheet" href="../assets/css/style.css?v=1.2">
+    <link rel="stylesheet" href="../assets/css/style.css?v=1.3">
     <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css">
 </head>
 <body class="bg-slate-100 min-h-screen">
     <?php include APP_ROOT . '/includes/navbar-impots.php'; ?>
 
     <main class="max-w-7xl mx-auto px-4 py-2">
+        <h1 class="text-lg font-bold text-slate-800 mb-3">Gestion des impôts</h1>
+
         <!-- Message -->
         <?php if ($message): ?>
-        <div class="mb-4 p-4 rounded-lg border-l-4 <?= $messageType === 'error' ? 'bg-red-50 border-red-500 text-red-700' : 'bg-green-50 border-green-500 text-green-700' ?>">
-            <?= htmlspecialchars($message) ?>
+        <div class="alert <?= $messageType === 'error' ? 'alert-error' : 'alert-success' ?> mb-4">
+            <i class="fas <?= $messageType === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle' ?>"></i>
+            <span><?= htmlspecialchars($message) ?></span>
         </div>
         <?php endif; ?>
 
@@ -519,6 +557,9 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
                             <?php endif; ?>
                             <?php if ($locationActif): ?>
                             <option value="tva-location" <?= $typeImpot === 'tva-location' ? 'selected' : '' ?>>TVA/LOCATION</option>
+                            <?php endif; ?>
+                            <?php if ($taxeTouristiqueActif): ?>
+                            <option value="taxe_touristique" <?= $typeImpot === 'taxe_touristique' ? 'selected' : '' ?>>Taxe Touristique</option>
                             <?php endif; ?>
                         </select>
                     </div>
@@ -630,16 +671,15 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
             <!-- Toujours envoyer les valeurs CA calculées -->
             <input type="hidden" name="ca_global" id="hiddenCaGlobal" value="<?= $caGlobal ?>">
             <input type="hidden" name="ca_exonere" id="hiddenCaExonere" value="<?= $caExonere ?>">
-            <input type="hidden" name="ca_taxable" id="hiddenCaTaxable" value="<?= $caTaxable ?>">
 
             <!-- Section Bases de calcul -->
             <?php if ($salairesActif || $locationActif || $irfTfActif): ?>
             <div class="bg-white rounded-xl shadow-sm border mb-6 overflow-hidden">
                 <div class="bg-slate-100 border-b border-slate-200 p-4 flex items-center justify-between cursor-pointer hover:bg-slate-200 transition" onclick="toggleSectionBases()">
-                    <h3 class="text-lg font-semibold text-slate-700">
+                    <h2 class="text-lg font-semibold text-slate-700">
                         <i class="fas fa-sliders-h text-slate-500 mr-2"></i>
                         Bases de calcul mensuelles
-                    </h3>
+                    </h2>
                     <div class="flex items-center gap-2">
                         <span id="labelStatusBases" class="text-xs font-medium text-slate-500 uppercase">Réduire</span>
                         <i id="iconToggleBases" class="fas fa-chevron-up text-slate-400 transform transition-transform duration-300"></i>
@@ -681,7 +721,7 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
                     </div>
                     
                     <div class="mt-4 text-center">
-                        <button type="button" onclick="recalcAll()" class="inline-flex items-center px-6 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition">
+                        <button type="button" onclick="recalcAll()" class="btn-primary px-6">
                             <i class="fas fa-calculator mr-2"></i> Recalculer les impôts
                         </button>
                     </div>
@@ -699,8 +739,11 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
             $ligne84 = $tvaLigne84; // Microfinance
             $ligne85 = $tvaLigne85; // Conventions Internationales
             $ligne86 = $tvaLigne86; // Autres exonérations
-            $ligne95 = $ligne81 + $ligne82 + $ligne83 + $ligne84 + $ligne85 + $ligne86;
-            $ligne100 = max(0, $ligne80 - $ligne95);
+            // Réutilise la base calculée une seule fois plus haut (ne jamais recalculer
+            // séparément : c'est exactement ce qui causait la divergence entre cette table
+            // et le résumé écran / le montant enregistré).
+            $ligne95 = $ligne95Global;
+            $ligne100 = $ligne100Global;
             $ligne101 = $tvaLigne101; // Livraison à soi-même imposable
             // Taux réduit 5%
             if ($tauxTVADouble) {
@@ -818,7 +861,7 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
                                 <td class="td-ligne">81</td>
                                 <td>CA Exonéré Sauf Exportation - Article 195 CGI</td>
                                 <td class="td-montant">
-                                    <?php if ($margeSelectionnee == 0): ?>
+                                    <?php if ($margeTaxableSelectionnee == 0): ?>
                                     <input type="text" name="ca_exonere" id="ca_exonere" class="input-manual" value="<?= formatMontant($ligne81) ?>">
                                     <?php else: ?>
                                     <?= $ligne81 > 0 ? formatMontant($ligne81) : '' ?>
@@ -840,13 +883,7 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
                             <tr class="row-total">
                                 <td class="td-ligne">100</td>
                                 <td>CA Global Hors TVA Taxable <span class="text-xs font-normal text-slate-500">(Lig. 80 - 95)</span></td>
-                                <td class="td-montant">
-                                    <?php if ($margeTaxableSelectionnee == 0): ?>
-                                    <input type="text" name="ca_taxable_manual" id="ca_taxable_manual" class="input-manual input-manual-purple" value="<?= formatMontant($caTaxable) ?>" onchange="updateCaTaxable()">
-                                    <?php else: ?>
-                                    <?= formatMontant($caTaxable) ?>
-                                    <?php endif; ?>
-                                </td>
+                                <td class="td-montant"><?= formatMontant($ligne100) ?></td>
                             </tr>
 
                             <!-- ====== SECTION TVA COLLECTÉE ====== -->
@@ -1293,6 +1330,53 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
                 </div>
             </div>
 
+            <!-- Section Taxe Touristique - Format Officiel (Loi n°96-052 du 16 octobre 1996) -->
+            <?php if ($taxeTouristiqueActif): ?>
+            <div id="section-taxe_touristique" class="<?= $typeImpot !== 'taxe_touristique' ? 'hidden' : '' ?>">
+                <div class="bg-white rounded-xl shadow-sm border overflow-hidden mb-6">
+                    <table class="tva-form">
+                        <thead>
+                            <tr>
+                                <th class="col-ligne">Ligne</th>
+                                <th>Désignation</th>
+                                <th class="col-montant">Montant</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="row-section"><td colspan="3"><i class="fas fa-umbrella-beach mr-1"></i> Taxe Touristique (Loi n°96-052 du 16 octobre 1996)</td></tr>
+
+                            <tr>
+                                <td class="td-ligne">110</td>
+                                <td>Type d'Etablissement</td>
+                                <td class="td-montant">
+                                    <select name="taxe_touristique_type" id="taxe_touristique_type" class="input-manual" onchange="changerTypeEtablissement(this.value)">
+                                        <option value="hebergement" <?= $taxeTouristiqueType === 'hebergement' ? 'selected' : '' ?>>Établissement d'hébergement</option>
+                                        <option value="transport" <?= $taxeTouristiqueType === 'transport' ? 'selected' : '' ?>>Compagnie aérienne / Agence de voyage</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="td-ligne">510</td>
+                                <td>Tarif par Nuit et par Client ou par Passager</td>
+                                <td class="td-montant"><input type="number" name="taxe_touristique_ligne510" id="taxe_touristique_ligne510" class="input-manual" style="width:150px;" value="<?= $taxeTouristiqueLigne510 ?>" min="0" step="1" oninput="recalcTaxeTouristique()"></td>
+                            </tr>
+                            <tr>
+                                <td class="td-ligne">520</td>
+                                <td>Nombre de Nuitées par Personne ou Nombre de Passagers</td>
+                                <td class="td-montant"><input type="number" name="taxe_touristique_ligne520" id="taxe_touristique_ligne520" class="input-manual" style="width:150px;" value="<?= $taxeTouristiqueLigne520 > 0 ? $taxeTouristiqueLigne520 : '' ?>" min="0" step="1" oninput="recalcTaxeTouristique()"></td>
+                            </tr>
+
+                            <tr class="row-result">
+                                <td class="td-ligne" style="background:#dcfce7; color:#16a34a;">810</td>
+                                <td style="color:#16a34a;">Impôt Net à Payer <span class="text-xs font-normal">(Lig. 510 × 520)</span></td>
+                                <td class="td-montant" id="taxe_touristique_val810" style="font-size:16px; color:#16a34a;"><?= formatMontant($taxeTouristique) ?></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <?php endif; ?>
+
             <!-- Section RAS - Retenue à la Source BIC/IS (lignes 400-430) -->
             <?php if ($rasActif): ?>
             <div id="section-ras" class="<?= $typeImpot !== 'ras' ? 'hidden' : '' ?>">
@@ -1627,6 +1711,17 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
                     <div class="text-lg font-bold text-slate-800"><span id="summary-tva-location"><?= formatMontant($tvaLocation) ?></span> F</div>
                 </div>
                 <?php endif; ?>
+
+                <!-- Taxe Touristique -->
+                <?php if ($taxeTouristiqueActif): ?>
+                <div class="bg-white rounded-lg border-2 border-slate-200 p-4">
+                    <div class="flex items-center mb-2">
+                        <i class="far fa-check-square text-green-500 mr-2"></i>
+                        <span class="font-semibold text-slate-700">Taxe Touristique</span>
+                    </div>
+                    <div class="text-lg font-bold text-slate-800"><span id="summary-taxe-touristique"><?= formatMontant($taxeTouristique) ?></span> F</div>
+                </div>
+                <?php endif; ?>
             </div>
 
             <!-- Total et boutons -->
@@ -1761,15 +1856,6 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
         if (hiddenMargTax) hiddenMargTax.value = marge;
         
         window.location.href = url.toString();
-    }
-
-    function updateCaTaxable() {
-        const val = getEl('ca_taxable_manual');
-        if (val) {
-            const montant = val.value.replace(/\s/g, '').replace(',', '.');
-            const hidden = getEl('hiddenCaTaxable');
-            if (hidden) hidden.value = montant;
-        }
     }
 
     function recalculerImpots() {
@@ -1945,7 +2031,9 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
         const sLoc = getEl('summary-tva-location'); if (sLoc) sLoc.textContent = fmt(tvaLocFinal);
 
         const ras = <?= $rasActif ? '1' : '0' ?> ? parseValue('ras_val430') : 0;
-        const total = tva + cf + tl + its + tf + irf + css + tvaLocFinal + ras;
+        const taxeTouristique = <?= $taxeTouristiqueActif ? '1' : '0' ?> ? parseValue('taxe_touristique_val810') : 0;
+        const sTaxeTouristique = getEl('summary-taxe-touristique'); if (sTaxeTouristique) sTaxeTouristique.textContent = fmt(taxeTouristique);
+        const total = tva + cf + tl + its + tf + irf + css + tvaLocFinal + ras + taxeTouristique;
         const totalGlob = getEl('total-global'); if (totalGlob) totalGlob.textContent = fmt(total);
     }
 
@@ -1992,12 +2080,30 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
         updateSummary();
     }
 
+    // Taxe Touristique : le type d'établissement pré-remplit le tarif légal
+    // (500 F/nuitée hébergement, 2 500 F/passager transport - Art.5 Loi n°96-052)
+    function changerTypeEtablissement(type) {
+        const tarifInput = getEl('taxe_touristique_ligne510');
+        if (tarifInput) tarifInput.value = (type === 'transport') ? 2500 : 500;
+        recalcTaxeTouristique();
+    }
+
+    function recalcTaxeTouristique() {
+        const tarif = parseInput('taxe_touristique_ligne510');
+        const nombre = parseInput('taxe_touristique_ligne520');
+        const l810 = Math.round(tarif * nombre);
+        const el810 = getEl('taxe_touristique_val810');
+        if (el810) el810.textContent = fmt(l810);
+        updateSummary();
+    }
+
     function recalcAll() {
         if (typeof recalcTVA === 'function') recalcTVA();
         if (typeof recalcCF === 'function') recalcCF();
         if (typeof recalcTL === 'function') recalcTL();
         if (typeof recalcTvaLocation === 'function') recalcTvaLocation();
         if (typeof recalcRAS === 'function') recalcRAS();
+        if (typeof recalcTaxeTouristique === 'function') recalcTaxeTouristique();
         updateSummary();
     }
 
