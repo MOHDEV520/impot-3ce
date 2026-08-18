@@ -138,7 +138,7 @@ $pageTitle = "Historique des Achats - " . htmlspecialchars($client['nom']);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $pageTitle ?></title>
-    <link rel="stylesheet" href="../assets/css/style.css?v=1.2">
+    <link rel="stylesheet" href="../assets/css/style.css?v=1.3">
     <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css?v=1.2">
     <style>
         .print-header { display: none; }
@@ -184,17 +184,6 @@ $pageTitle = "Historique des Achats - " . htmlspecialchars($client['nom']);
         }
         .print-footer-info { display: none; }
     </style>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {"50":"#eff6ff","100":"#dbeafe","200":"#bfdbfe","300":"#93c5fd","400":"#60a5fa","500":"#3b82f6","600":"#2563eb","700":"#1d4ed8","800":"#1e40af","900":"#1e3a8a"}
-                    }
-                }
-            }
-        }
-    </script>
 </head>
 <body class="bg-slate-100 min-h-screen">
     <?php
@@ -323,6 +312,7 @@ $pageTitle = "Historique des Achats - " . htmlspecialchars($client['nom']);
 
         <!-- Tableau des achats -->
         <div class="card overflow-hidden p-0">
+            <div class="overflow-x-auto">
             <table class="table-clean">
                 <thead>
                     <tr>
@@ -416,6 +406,7 @@ $pageTitle = "Historique des Achats - " . htmlspecialchars($client['nom']);
                 </tfoot>
                 <?php endif; ?>
             </table>
+            </div>
         </div>
 
         <!-- Pied de page impression -->

@@ -143,16 +143,16 @@ require_once APP_ROOT . '/includes/header.php';
         </div>
 
         <?php if ($message): ?>
-        <div class="mb-6 p-4 bg-green-100 border-l-4 border-green-500 text-green-700 rounded shadow-sm flex items-center">
-            <i class="fas fa-check-circle mr-3"></i>
-            <?= htmlspecialchars($message) ?>
+        <div class="alert alert-success mb-6">
+            <i class="fas fa-check-circle"></i>
+            <span><?= htmlspecialchars($message) ?></span>
         </div>
         <?php endif; ?>
 
         <?php if ($erreur): ?>
-        <div class="mb-6 p-4 bg-red-100 border-l-4 border-red-500 text-red-700 rounded shadow-sm flex items-center">
-            <i class="fas fa-exclamation-triangle mr-3"></i>
-            <?= htmlspecialchars($erreur) ?>
+        <div class="alert alert-error mb-6">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span><?= htmlspecialchars($erreur) ?></span>
         </div>
         <?php endif; ?>
 
@@ -206,12 +206,12 @@ require_once APP_ROOT . '/includes/header.php';
                 <!-- Statistiques Portefeuille -->
                 <div class="card">
                     <h3 class="font-bold text-slate-800 mb-4 flex items-center text-sm uppercase tracking-wider">
-                        <i class="fas fa-chart-pie mr-2 text-indigo-500"></i> Portefeuille
+                        <i class="fas fa-chart-pie mr-2 text-primary-500"></i> Portefeuille
                     </h3>
                     <div class="grid grid-cols-2 gap-4">
-                        <div class="p-3 bg-indigo-50 rounded-lg border border-indigo-100">
-                            <p class="text-[10px] text-indigo-600 font-bold uppercase mb-1">Clients</p>
-                            <p class="text-2xl font-black text-indigo-800"><?= $nbClients ?></p>
+                        <div class="p-3 bg-primary-50 rounded-lg border border-primary-100">
+                            <p class="text-[10px] text-primary-600 font-bold uppercase mb-1">Clients</p>
+                            <p class="text-2xl font-black text-primary-800"><?= $nbClients ?></p>
                         </div>
                         <div class="p-3 bg-emerald-50 rounded-lg border border-emerald-100">
                             <p class="text-[10px] text-emerald-600 font-bold uppercase mb-1">Dossiers OK</p>

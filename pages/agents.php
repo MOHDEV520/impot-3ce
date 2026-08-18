@@ -31,6 +31,12 @@ $message = '';
 $messageType = 'success';
 $csrfToken = Agent::getCsrfToken();
 
+// Ré-ouverture du modal "Nouvel agent" avec les valeurs saisies en cas d'échec
+// (email en double, mot de passe trop court, etc.) — on ne fait jamais
+// retaper le formulaire en entier pour une erreur de validation.
+$formAjouter = ['prenom' => '', 'nom' => '', 'email' => '', 'role' => 'agent'];
+$reouvrirModalAjouter = false;
+
 // Traitement des actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
@@ -103,6 +109,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } catch (Exception $e) {
         $message = messageErreurUtilisateur($e, "cette action sur l'agent");
         $messageType = 'error';
+
+        if ($action === 'ajouter') {
+            $formAjouter = [
+                'prenom' => trim($_POST['prenom'] ?? ''),
+                'nom' => trim($_POST['nom'] ?? ''),
+                'email' => trim($_POST['email'] ?? ''),
+                'role' => $_POST['role'] ?? 'agent',
+            ];
+            $reouvrirModalAjouter = true;
+        }
     }
 }
 
@@ -116,74 +132,10 @@ foreach ($agents as $a) {
     if ($a['statut'] === 'actif') $nbActifs++;
     else $nbInactifs++;
 }
+
+$titrePage = 'Gestion des agents';
+require_once APP_ROOT . '/includes/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion des agents - Gestion Fiscale</title>
-    <link rel="stylesheet" href="../assets/css/style.css?v=1.2">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd',
-                            400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8',
-                            800: '#1e40af', 900: '#1e3a8a',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css?v=1.2">
-</head>
-<body class="bg-gray-100 min-h-screen">
-    <!-- Navigation -->
-    <nav class="bg-primary-800 text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <a href="dashboard.php" class="flex items-center">
-                        <div class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center mr-3">
-                            <i class="fas fa-calculator text-xl"></i>
-                        </div>
-                        <span class="text-xl font-bold">Gestion Fiscale</span>
-                    </a>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-sm text-blue-200"><?= htmlspecialchars($agent->getNomComplet()) ?></span>
-                    <a href="logout.php" class="text-blue-200 hover:text-white"><i class="fas fa-sign-out-alt"></i></a>
-                </div>
-            </div>
-        </div>
-    </nav>
-    
-    <!-- Menu secondaire -->
-    <div class="bg-white shadow">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex space-x-8 h-12">
-                <a href="dashboard.php" class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 px-1 pt-3 text-sm font-medium">
-                    <i class="fas fa-tachometer-alt mr-1"></i> Tableau de bord
-                </a>
-                <a href="clients.php" class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 px-1 pt-3 text-sm font-medium">
-                    <i class="fas fa-users mr-1"></i> Clients
-                </a>
-                <a href="impots.php" class="border-b-2 border-transparent text-gray-500 hover:text-gray-700 px-1 pt-3 text-sm font-medium">
-                    <i class="fas fa-file-invoice-dollar mr-1"></i> Impôts
-                </a>
-                <a href="agents.php" class="border-b-2 border-primary-500 text-primary-600 px-1 pt-3 text-sm font-medium">
-                    <i class="fas fa-user-cog mr-1"></i> Agents
-                </a>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Contenu -->
-    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- En-tête -->
         <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
             <div>
@@ -197,19 +149,18 @@ foreach ($agents as $a) {
         </div>
         
         <!-- Message -->
-        <?php if ($message): 
-            $alertClass = $messageType === 'success' ? 'bg-green-50 border-green-500 text-green-700' : 'bg-red-50 border-red-500 text-red-700';
+        <?php if ($message):
+            $alertVariant = $messageType === 'success' ? 'alert-success' : 'alert-error';
         ?>
-        <div class="mb-6 p-4 rounded-lg border-l-4 <?= $alertClass ?>">
-            <div class="flex items-center">
-                <i class="fas <?= $messageType === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle' ?> mr-2"></i>
-                <span><?= htmlspecialchars($message) ?></span>
-            </div>
+        <div class="alert <?= $alertVariant ?> mb-6">
+            <i class="fas <?= $messageType === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle' ?>"></i>
+            <span><?= htmlspecialchars($message) ?></span>
         </div>
         <?php endif; ?>
         
         <!-- Liste des agents -->
         <div class="card overflow-hidden p-0">
+            <div class="overflow-x-auto">
             <table class="table-clean">
                 <thead>
                     <tr>
@@ -271,8 +222,8 @@ foreach ($agents as $a) {
                                             'role' => $a['role'],
                                             'statut' => $a['statut'],
                                         ], JSON_UNESCAPED_UNICODE | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP), ENT_QUOTES, 'UTF-8') ?>"
-                                        onclick="openEditModalFromBtn(this)" 
-                                        class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Modifier">
+                                        onclick="openEditModalFromBtn(this)"
+                                        class="inline-flex items-center justify-center w-11 h-11 text-blue-600 hover:bg-blue-50 rounded-lg" title="Modifier" aria-label="Modifier l'agent">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 
@@ -282,7 +233,7 @@ foreach ($agents as $a) {
                                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                                         <input type="hidden" name="action" value="supprimer">
                                         <input type="hidden" name="agent_id" value="<?= $a['id'] ?>">
-                                        <button type="submit" class="p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Désactiver">
+                                        <button type="submit" class="inline-flex items-center justify-center w-11 h-11 text-red-600 hover:bg-red-50 rounded-lg" title="Désactiver" aria-label="Désactiver l'agent">
                                             <i class="fas fa-user-slash"></i>
                                         </button>
                                     </form>
@@ -291,7 +242,7 @@ foreach ($agents as $a) {
                                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                                         <input type="hidden" name="action" value="reactiver">
                                         <input type="hidden" name="agent_id" value="<?= $a['id'] ?>">
-                                        <button type="submit" class="p-2 text-green-600 hover:bg-green-50 rounded-lg" title="Réactiver">
+                                        <button type="submit" class="inline-flex items-center justify-center w-11 h-11 text-green-600 hover:bg-green-50 rounded-lg" title="Réactiver" aria-label="Réactiver l'agent">
                                             <i class="fas fa-user-check"></i>
                                         </button>
                                     </form>
@@ -303,9 +254,9 @@ foreach ($agents as $a) {
                     <?php endforeach; ?>
                 </tbody>
             </table>
+            </div>
         </div>
-    </main>
-    
+
     <!-- Modal Ajouter -->
     <div id="modal-ajouter" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
         <!-- Overlay -->
@@ -325,35 +276,35 @@ foreach ($agents as $a) {
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Prénom</label>
-                        <input type="text" name="prenom" required
+                        <input type="text" name="prenom" required value="<?= htmlspecialchars($formAjouter['prenom']) ?>"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Nom</label>
-                        <input type="text" name="nom" required
+                        <input type="text" name="nom" required value="<?= htmlspecialchars($formAjouter['nom']) ?>"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
                     </div>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input type="email" name="email" required
+                    <input type="email" name="email" required value="<?= htmlspecialchars($formAjouter['email']) ?>"
                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
                     <input type="password" name="mot_de_passe" required minlength="6"
                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
                     <p class="text-xs text-gray-500 mt-1">Minimum 6 caractères</p>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Rôle</label>
                     <select name="role" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
-                        <option value="agent">Agent</option>
-                        <option value="superviseur">Superviseur</option>
-                        <option value="admin">Administrateur</option>
+                        <option value="agent" <?= $formAjouter['role'] === 'agent' ? 'selected' : '' ?>>Agent</option>
+                        <option value="superviseur" <?= $formAjouter['role'] === 'superviseur' ? 'selected' : '' ?>>Superviseur</option>
+                        <option value="admin" <?= $formAjouter['role'] === 'admin' ? 'selected' : '' ?>>Administrateur</option>
                     </select>
                 </div>
                 
@@ -447,11 +398,15 @@ foreach ($agents as $a) {
     
     <script>
         function openModal(id) {
-            document.getElementById(id).classList.remove('hidden');
+            const modal = document.getElementById(id);
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
         }
-        
+
         function closeModal(id) {
-            document.getElementById(id).classList.add('hidden');
+            const modal = document.getElementById(id);
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
         }
         
         function openEditModalFromBtn(btn) {
@@ -471,13 +426,13 @@ foreach ($agents as $a) {
             document.getElementById('edit-statut').value = agent.statut;
             openModal('modal-modifier');
         }
-        
-        // Fermer modal avec Escape
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                document.querySelectorAll('[id^="modal-"]').forEach(m => m.classList.add('hidden'));
-            }
+
+        <?php if ($reouvrirModalAjouter): ?>
+        // La création a échoué (ex : email déjà utilisé) — on rouvre le modal
+        // avec les valeurs déjà saisies au lieu de tout faire retaper.
+        document.addEventListener('DOMContentLoaded', function() {
+            openModal('modal-ajouter');
         });
+        <?php endif; ?>
     </script>
-</body>
-</html>
+<?php require_once APP_ROOT . '/includes/footer.php'; ?>

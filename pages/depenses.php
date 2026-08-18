@@ -222,7 +222,7 @@ $pageTitle = "Gestion des Dépenses - " . htmlspecialchars($client['nom']);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $pageTitle ?></title>
-    <link rel="stylesheet" href="../assets/css/style.css?v=1.2">
+    <link rel="stylesheet" href="../assets/css/style.css?v=1.3">
     <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css?v=1.2">
 </head>
 <body class="bg-slate-100 min-h-screen">
@@ -231,8 +231,9 @@ $pageTitle = "Gestion des Dépenses - " . htmlspecialchars($client['nom']);
     <main class="max-w-7xl mx-auto px-4 py-2">
         <!-- Messages -->
         <?php if ($message): ?>
-        <div class="mb-4 p-4 rounded-lg border-l-4 <?= $messageType === 'success' ? 'bg-green-50 border-green-500 text-green-700' : 'bg-red-50 border-red-500 text-red-700' ?>">
-            <?= htmlspecialchars($message) ?>
+        <div class="alert <?= $messageType === 'success' ? 'alert-success' : 'alert-error' ?> mb-4">
+            <i class="fas <?= $messageType === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle' ?>"></i>
+            <span><?= htmlspecialchars($message) ?></span>
         </div>
         <?php endif; ?>
 
@@ -251,6 +252,7 @@ $pageTitle = "Gestion des Dépenses - " . htmlspecialchars($client['nom']);
 
         <!-- Tableau des dépenses -->
         <div class="card overflow-hidden p-0">
+            <div class="overflow-x-auto">
             <table class="table-clean">
                 <thead>
                     <tr>
@@ -320,6 +322,7 @@ $pageTitle = "Gestion des Dépenses - " . htmlspecialchars($client['nom']);
                 </tfoot>
                 <?php endif; ?>
             </table>
+            </div>
         </div>
 
         <!-- Lien retour -->

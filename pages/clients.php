@@ -100,15 +100,13 @@ require_once APP_ROOT . '/includes/header.php';
         // Afficher les messages
         $msg = $_GET['msg'] ?? '';
         $msgType = $_GET['type'] ?? 'info';
-        if ($msg): 
-            $bgColor = $msgType === 'success' ? 'bg-green-50 border-green-500 text-green-700' : 'bg-red-50 border-red-500 text-red-700';
+        if ($msg):
+            $alertVariant = $msgType === 'success' ? 'alert-success' : 'alert-error';
             $icon = $msgType === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
         ?>
-        <div class="mb-6 p-4 <?= $bgColor ?> border-l-4 rounded-r-lg">
-            <div class="flex items-center">
-                <i class="fas <?= $icon ?> mr-2"></i>
-                <span><?= htmlspecialchars($msg) ?></span>
-            </div>
+        <div class="alert <?= $alertVariant ?> mb-6">
+            <i class="fas <?= $icon ?>"></i>
+            <span><?= htmlspecialchars($msg) ?></span>
         </div>
         <?php endif; ?>
 
@@ -164,6 +162,7 @@ require_once APP_ROOT . '/includes/header.php';
 
         <!-- Tableau des clients -->
         <div class="card overflow-hidden p-0">
+            <div class="overflow-x-auto">
             <table class="table-clean">
                 <thead>
                     <tr>
@@ -218,8 +217,8 @@ require_once APP_ROOT . '/includes/header.php';
                                    title="Modifier">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <a href="rapport-annuel.php?client=<?= $client['id'] ?>&annee=<?= $anneeActuelle ?>" 
-                                   class="inline-flex items-center px-3 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+                                <a href="rapport-annuel.php?client=<?= $client['id'] ?>&annee=<?= $anneeActuelle ?>"
+                                   class="btn-secondary px-3 py-2"
                                    title="Rapport annuel">
                                     <i class="fas fa-chart-line mr-1"></i> Rapport
                                 </a>
@@ -230,6 +229,7 @@ require_once APP_ROOT . '/includes/header.php';
                     <?php endif; ?>
                 </tbody>
             </table>
+            </div>
         </div>
 
 <?php require_once APP_ROOT . '/includes/footer.php'; ?>

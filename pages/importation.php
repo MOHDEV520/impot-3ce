@@ -108,6 +108,7 @@ $tableColumns = [
     'impots' => ['client_id', 'compte_gestion_id', 'mois', 'annee', 'tva_collectee', 'tva_deductible', 'tva_a_payer', 'credit_tva', 'cf', 'its', 'tl', 'irf', 'tva_location', 'tf', 'css', 'total_impots']
 ];
 
+$titrePage = 'Importation';
 include APP_ROOT . '/includes/header.php';
 ?>
 
@@ -123,14 +124,12 @@ include APP_ROOT . '/includes/header.php';
         </div>
 
         <!-- Alertes -->
-        <?php if ($message): ?>
-            <?php 
-                $alertVariant = ($messageType === 'success') 
-                    ? 'bg-green-50 border-green-500 text-green-700' 
-                    : 'bg-red-50 border-red-500 text-red-700';
-            ?>
-            <div class="mb-6 p-4 rounded-lg border-l-4 <?= $alertVariant ?>">
-                <?= htmlspecialchars($message) ?>
+        <?php if ($message):
+            $alertVariant = $messageType === 'success' ? 'alert-success' : 'alert-error';
+        ?>
+            <div class="alert <?= $alertVariant ?> mb-6">
+                <i class="fas <?= $messageType === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle' ?>"></i>
+                <span><?= htmlspecialchars($message) ?></span>
             </div>
         <?php endif; ?>
 
