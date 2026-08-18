@@ -226,6 +226,12 @@ $tvaLocation = $locationActif ? max(0, $locTvaCollectee - (float)($compteGestion
 // 2g. Retenue à la Source BIC/IS (si activée pour ce client)
 $ras = $rasActif ? Impot::calculerRetenueSourceBIC($compteGestion)['430'] : 0;
 
+// 2h. Taxe Touristique (Loi n°96-052) - Lig. 510 x 520, si activée pour ce client
+$taxeTouristiqueActif = $parametresFiscaux ? (int)($parametresFiscaux['taxe_touristique_actif'] ?? 0) : 0;
+$taxeTouristique = $taxeTouristiqueActif
+    ? round((float)($compteGestion['taxe_touristique_ligne510'] ?? 0) * (float)($compteGestion['taxe_touristique_ligne520'] ?? 0), 2)
+    : 0;
+
 // Récupérer les impôts
 $impotsSaved = $db->fetchOne(
     "SELECT * FROM impots_mensuels WHERE client_id = ? AND mois = ? AND annee = ?",
@@ -234,7 +240,7 @@ $impotsSaved = $db->fetchOne(
 
 // Pour le recapitulatif, garder la logique declaration TVA (ligne 131 = 111 - 125).
 
-$totalImpots = $tvaNette + $cf + $tl + $its + $irf + $tf + $css + $tvaLocation + $ras;
+$totalImpots = $tvaNette + $cf + $tl + $its + $irf + $tf + $css + $tvaLocation + $ras + $taxeTouristique;
 
 // Total des dépenses = Dépenses normales + Masse Salariale + Impôts déclarés
 $totalDepenses = $totalDepensesNormales + $masseSalariale + $totalImpots;
@@ -253,14 +259,44 @@ $pageTitle = "Récapitulatif - " . htmlspecialchars($client['nom']);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $pageTitle ?></title>
-    <link rel="stylesheet" href="../assets/css/style.css?v=1.2">
+    <link rel="stylesheet" href="../assets/css/style.css?v=1.3">
     <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css?v=1.2">
     <style>
+        @page { size: A4; margin: 10mm; }
+
         @media print {
             .no-print { display: none !important; }
-            body { background: white !important; font-size: 10pt; }
-            .section-box { border: 1px solid #ddd !important; margin-bottom: 20px !important; break-inside: avoid; }
-            .section-header { background: #f8fafc !important; color: black !important; border-bottom: 2px solid #ddd !important; }
+            body { background: white !important; font-size: 8.5pt; padding-bottom: 0 !important; }
+            main { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+            .card { box-shadow: none !important; }
+            .section-box {
+                border: 1px solid #ddd !important;
+                margin-bottom: 6px !important;
+                break-inside: avoid;
+            }
+            /* La carte d'en-tête n'a pas de "p-0" (contrairement aux autres
+               cartes, qui neutralisent le padding par défaut de .card et le
+               reportent sur un <div class="p-4"> interne) : elle garde donc le
+               p-6 (24px) de .card telle quelle. On la resserre spécifiquement. */
+            .section-box:not(.p-0) { padding: 6px 10px !important; }
+            .section-box .p-4 { padding: 5px 10px !important; }
+            .section-box .mb-4 { margin-bottom: 6px !important; }
+            .section-header {
+                background: #f8fafc !important;
+                color: black !important;
+                border-bottom: 1px solid #ddd !important;
+                padding: 3px 10px !important;
+            }
+            /* La grille de cartes-résumé (Achats/CA/Dépenses/Impôts) retombe sur
+               2 colonnes en dessous du seuil "md" de Tailwind, ce qui la fait
+               passer sur 2 rangées et double sa hauteur à l'impression : on la
+               force sur une seule rangée de 4, comme à l'écran en desktop. */
+            .stats-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 6px !important; }
+            .stats-grid > div { padding: 5px !important; }
+            .stats-grid .text-lg { font-size: 0.95rem !important; }
+            table td, table th { padding-top: 2px !important; padding-bottom: 2px !important; }
+            h1 { font-size: 1.1rem !important; }
+            .print-footer { margin-top: 6px !important; padding-top: 4px !important; }
             .tva-collectee-highlight {
                 background: #dbeafe !important;
                 -webkit-print-color-adjust: exact;
@@ -288,9 +324,9 @@ $pageTitle = "Récapitulatif - " . htmlspecialchars($client['nom']);
     <main class="max-w-7xl mx-auto px-4 py-6">
         <!-- Message -->
         <?php if ($message): ?>
-        <div class="mb-4 p-4 rounded-lg border-l-4 <?= $messageType === 'error' ? 'bg-red-50 border-red-500 text-red-700' : 'bg-green-50 border-green-500 text-green-700' ?>">
-            <i class="fas <?= $messageType === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle' ?> mr-2"></i>
-            <?= htmlspecialchars($message) ?>
+        <div class="alert <?= $messageType === 'error' ? 'alert-error' : 'alert-success' ?> mb-4">
+            <i class="fas <?= $messageType === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle' ?>"></i>
+            <span><?= htmlspecialchars($message) ?></span>
         </div>
         <?php endif; ?>
         
@@ -306,7 +342,7 @@ $pageTitle = "Récapitulatif - " . htmlspecialchars($client['nom']);
 
         <!-- ========== 1. EN-TÊTE CLIENT + RÉSUMÉ ========== -->
         <div class="card mb-4 section-box">
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
                 <div>
                     <h1 class="text-2xl font-bold text-slate-800"><?= htmlspecialchars($client['nom']) ?></h1>
                     <div class="flex items-center space-x-3">
@@ -322,7 +358,7 @@ $pageTitle = "Récapitulatif - " . htmlspecialchars($client['nom']);
                     </div>
                     <?php if ($client['ifu']): ?><p class="text-sm text-slate-400">NIF: <?= htmlspecialchars($client['ifu']) ?></p><?php endif; ?>
                 </div>
-                <div class="text-right no-print flex items-center space-x-2">
+                <div class="no-print flex items-center flex-wrap gap-2">
                     <?php if ($compteGestion['statut'] !== 'valide' && $compteGestion['statut'] !== 'verrouille'): ?>
                     <button type="button" onclick="ouvrirModalValidation()" class="btn-success py-2.5">
                         <i class="fas fa-check"></i> VALIDER CE MOIS
@@ -397,7 +433,7 @@ $pageTitle = "Récapitulatif - " . htmlspecialchars($client['nom']);
             <?php endif; ?>
             
             <!-- Cartes résumé -->
-            <div class="grid grid-cols-4 gap-3">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 stats-grid">
                 <div class="bg-blue-50 rounded-lg p-3 text-center">
                     <div class="text-blue-600 text-xs font-medium uppercase">Achats HT</div>
                     <div class="text-lg font-bold text-blue-800"><?= formatMontant($totauxAchats['total_ht']) ?> F</div>
@@ -470,71 +506,6 @@ $pageTitle = "Récapitulatif - " . htmlspecialchars($client['nom']);
                         <tr class="bg-purple-100">
                             <td class="py-3 font-bold text-purple-800">TVA NET</td>
                             <td class="py-3 text-right font-bold text-purple-900"><?= formatMontant($tvaNette) ?> F</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- ========== 2c. RÉCAPITULATIF DES IMPÔTS ========== -->
-        <div class="card overflow-hidden mb-4 mt-4 section-box p-0">
-            <div class="bg-red-700 text-white px-4 py-2 section-header">
-                <i class="fas fa-file-invoice-dollar mr-2"></i> RÉSUMÉ DES IMPÔTS À PAYER
-            </div>
-            <div class="p-4">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="border-b-2 border-slate-100">
-                            <th class="text-left py-2 text-slate-600">Nature de l'Impôt</th>
-                            <th class="text-right py-2 text-slate-600">Montant Net à Payer</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class="border-b">
-                            <td class="py-2 text-slate-700">TVA Nette à Payer (Ligne 131)</td>
-                            <td class="py-2 text-right"><?= formatMontant($tvaNette) ?> F</td>
-                        </tr>
-                        <tr class="border-b">
-                            <td class="py-2 text-slate-700">ITS (Impôts sur Salaires)</td>
-                            <td class="py-2 text-right"><?= formatMontant($its) ?> F</td>
-                        </tr>
-                        <tr class="border-b">
-                            <td class="py-2 text-slate-700">CF (Contribution Forfaitaire)</td>
-                            <td class="py-2 text-right"><?= formatMontant($cf) ?> F</td>
-                        </tr>
-                        <tr class="border-b">
-                            <td class="py-2 text-slate-700">TL (Taxe Logement)</td>
-                            <td class="py-2 text-right"><?= formatMontant($tl) ?> F</td>
-                        </tr>
-                        <tr class="border-b">
-                            <td class="py-2 text-slate-700">CSS (Contribution Sociale de Solidarité)</td>
-                            <td class="py-2 text-right"><?= formatMontant($css) ?> F</td>
-                        </tr>
-                        <?php if ($rasActif): ?>
-                        <tr class="border-b">
-                            <td class="py-2 text-slate-700">Retenue BIC/IS</td>
-                            <td class="py-2 text-right"><?= formatMontant($ras) ?> F</td>
-                        </tr>
-                        <?php endif; ?>
-                        <?php if ($irfTfActif): ?>
-                        <tr class="border-b">
-                            <td class="py-2 text-slate-700">TF (Taxe Foncière / Location)</td>
-                            <td class="py-2 text-right"><?= formatMontant($tf) ?> F</td>
-                        </tr>
-                        <tr class="border-b">
-                            <td class="py-2 text-slate-700">IRF (Impôt sur Revenus Fonciers)</td>
-                            <td class="py-2 text-right"><?= formatMontant($irf) ?> F</td>
-                        </tr>
-                        <?php endif; ?>
-                        <?php if ($locationActif): ?>
-                        <tr class="border-b">
-                            <td class="py-2 text-slate-700">TVA s/Location</td>
-                            <td class="py-2 text-right"><?= formatMontant($tvaLocation) ?> F</td>
-                        </tr>
-                        <?php endif; ?>
-                        <tr class="bg-slate-100">
-                            <td class="py-3 font-bold text-slate-800 uppercase">TOTAL IMPÔTS À PAYER</td>
-                            <td class="py-3 text-right font-bold text-slate-800"><?= formatMontant($totalImpots) ?> F</td>
                         </tr>
                     </tbody>
                 </table>
@@ -656,98 +627,13 @@ $pageTitle = "Récapitulatif - " . htmlspecialchars($client['nom']);
                         </tr>
                         <?php endif; ?>
                         
-                        <!-- Impôts Déclarés -->
+                        <!-- Impôts Déclarés : total uniquement — le détail par impôt est déjà
+                             affiché dans Récap Paiements ; pas besoin de le répéter ici. -->
                         <?php if ($totalImpots > 0): ?>
                         <tr class="bg-red-50">
-                            <td colspan="4" class="py-2 font-semibold text-red-700">
-                                <i class="fas fa-file-invoice-dollar mr-1"></i> Impôts Déclarés
+                            <td class="py-2 font-semibold text-red-700">
+                                <i class="fas fa-file-invoice-dollar mr-1"></i> Total des Impôts Payés du Mois
                             </td>
-                        </tr>
-                        
-                        <?php if ($tvaNette > 0): ?>
-                        <tr class="border-b border-slate-100">
-                            <td class="py-1 pl-6 text-slate-600">TVA</td>
-                            <td class="py-1 text-right"><?= formatMontant($tvaNette) ?></td>
-                            <td class="py-1 text-right">-</td>
-                            <td class="py-1 text-right"><?= formatMontant($tvaNette) ?></td>
-                        </tr>
-                        <?php endif; ?>
-                        
-                        <?php if ($cf > 0): ?>
-                        <tr class="border-b border-slate-100">
-                            <td class="py-1 pl-6 text-slate-600">CF (Contribution Forfaitaire)</td>
-                            <td class="py-1 text-right"><?= formatMontant($cf) ?></td>
-                            <td class="py-1 text-right">-</td>
-                            <td class="py-1 text-right"><?= formatMontant($cf) ?></td>
-                        </tr>
-                        <?php endif; ?>
-                        
-                        <?php if ($tl > 0): ?>
-                        <tr class="border-b border-slate-100">
-                            <td class="py-1 pl-6 text-slate-600">TL (Taxe Logement)</td>
-                            <td class="py-1 text-right"><?= formatMontant($tl) ?></td>
-                            <td class="py-1 text-right">-</td>
-                            <td class="py-1 text-right"><?= formatMontant($tl) ?></td>
-                        </tr>
-                        <?php endif; ?>
-                        
-                        <?php if ($its > 0): ?>
-                        <tr class="border-b border-slate-100">
-                            <td class="py-1 pl-6 text-slate-600">ITS</td>
-                            <td class="py-1 text-right"><?= formatMontant($its) ?></td>
-                            <td class="py-1 text-right">-</td>
-                            <td class="py-1 text-right"><?= formatMontant($its) ?></td>
-                        </tr>
-                        <?php endif; ?>
-                        
-                        <?php if ($css > 0): ?>
-                        <tr class="border-b border-slate-100">
-                            <td class="py-1 pl-6 text-slate-600">CSS</td>
-                            <td class="py-1 text-right"><?= formatMontant($css) ?></td>
-                            <td class="py-1 text-right">-</td>
-                            <td class="py-1 text-right"><?= formatMontant($css) ?></td>
-                        </tr>
-                        <?php endif; ?>
-
-                        <?php if ($rasActif && $ras > 0): ?>
-                        <tr class="border-b border-slate-100">
-                            <td class="py-1 pl-6 text-slate-600">Retenue à la Source BIC/IS</td>
-                            <td class="py-1 text-right"><?= formatMontant($ras) ?></td>
-                            <td class="py-1 text-right">-</td>
-                            <td class="py-1 text-right"><?= formatMontant($ras) ?></td>
-                        </tr>
-                        <?php endif; ?>
-                        
-                        <?php if ($irf > 0): ?>
-                        <tr class="border-b border-slate-100">
-                            <td class="py-1 pl-6 text-slate-600">IRF (Revenus Fonciers)</td>
-                            <td class="py-1 text-right"><?= formatMontant($irf) ?></td>
-                            <td class="py-1 text-right">-</td>
-                            <td class="py-1 text-right"><?= formatMontant($irf) ?></td>
-                        </tr>
-                        <?php endif; ?>
-                        
-                        <?php if ($tf > 0): ?>
-                        <tr class="border-b border-slate-100">
-                            <td class="py-1 pl-6 text-slate-600">TF (Taxe Foncière)</td>
-                            <td class="py-1 text-right"><?= formatMontant($tf) ?></td>
-                            <td class="py-1 text-right">-</td>
-                            <td class="py-1 text-right"><?= formatMontant($tf) ?></td>
-                        </tr>
-                        <?php endif; ?>
-                        
-                        <?php if ($tvaLocation > 0): ?>
-                        <tr class="border-b border-slate-100">
-                            <td class="py-1 pl-6 text-slate-600">TVA/Location</td>
-                            <td class="py-1 text-right"><?= formatMontant($tvaLocation) ?></td>
-                            <td class="py-1 text-right">-</td>
-                            <td class="py-1 text-right"><?= formatMontant($tvaLocation) ?></td>
-                        </tr>
-                        <?php endif; ?>
-                        
-                        <!-- Sous-total impôts -->
-                        <tr class="bg-red-50">
-                            <td class="py-2 pl-6 font-semibold text-red-700">Sous-total Impôts</td>
                             <td class="py-2 text-right font-bold text-red-700"><?= formatMontant($totalImpots) ?></td>
                             <td class="py-2 text-right font-bold text-red-700">-</td>
                             <td class="py-2 text-right font-bold text-red-700"><?= formatMontant($totalImpots) ?></td>
