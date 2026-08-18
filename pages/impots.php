@@ -1628,7 +1628,7 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
                 <!-- TVA -->
                 <div class="bg-white rounded-lg border-2 border-slate-200 p-4">
                     <div class="flex items-center mb-2">
-                        <i class="far fa-check-square text-green-500 mr-2"></i>
+                        <i class="fas fa-check-square text-green-500 mr-2"></i>
                         <span class="font-semibold text-slate-700">TVA</span>
                     </div>
                     <div class="text-lg font-bold text-slate-800"><span id="summary-tva"><?= formatMontant($tvaNette) ?></span> F</div>
@@ -1637,7 +1637,7 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
                 <!-- CF -->
                 <div class="bg-white rounded-lg border-2 border-slate-200 p-4">
                     <div class="flex items-center mb-2">
-                        <i class="far fa-check-square text-green-500 mr-2"></i>
+                        <i class="fas fa-check-square text-green-500 mr-2"></i>
                         <span class="font-semibold text-slate-700">CF</span>
                     </div>
                     <div class="text-lg font-bold text-slate-800"><span id="summary-cf"><?= formatMontant($cf) ?></span> F</div>
@@ -1646,7 +1646,7 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
                 <!-- TL -->
                 <div class="bg-white rounded-lg border-2 border-slate-200 p-4">
                     <div class="flex items-center mb-2">
-                        <i class="far fa-check-square text-green-500 mr-2"></i>
+                        <i class="fas fa-check-square text-green-500 mr-2"></i>
                         <span class="font-semibold text-slate-700">TL</span>
                     </div>
                     <div class="text-lg font-bold text-slate-800"><span id="summary-tl"><?= formatMontant($tl) ?></span> F</div>
@@ -1655,7 +1655,7 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
                 <!-- ITS -->
                 <div class="bg-white rounded-lg border-2 border-slate-200 p-4">
                     <div class="flex items-center mb-2">
-                        <i class="far fa-check-square text-green-500 mr-2"></i>
+                        <i class="fas fa-check-square text-green-500 mr-2"></i>
                         <span class="font-semibold text-slate-700">ITS</span>
                     </div>
                     <div class="text-lg font-bold text-slate-800"><span id="summary-its"><?= formatMontant($its) ?></span> F</div>
@@ -1665,7 +1665,7 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
                 <?php if ($irfTfActif): ?>
                 <div class="bg-white rounded-lg border-2 border-slate-200 p-4">
                     <div class="flex items-center mb-2">
-                        <i class="far fa-check-square text-green-500 mr-2"></i>
+                        <i class="fas fa-check-square text-green-500 mr-2"></i>
                         <span class="font-semibold text-slate-700">TF</span>
                     </div>
                     <div class="text-lg font-bold text-slate-800"><span id="summary-tf"><?= formatMontant($tf) ?></span> F</div>
@@ -1674,7 +1674,7 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
                 <!-- IRF -->
                 <div class="bg-white rounded-lg border-2 border-slate-200 p-4">
                     <div class="flex items-center mb-2">
-                        <i class="far fa-check-square text-green-500 mr-2"></i>
+                        <i class="fas fa-check-square text-green-500 mr-2"></i>
                         <span class="font-semibold text-slate-700">IRF</span>
                     </div>
                     <div class="text-lg font-bold text-slate-800"><span id="summary-irf"><?= formatMontant($irf) ?></span> F</div>
@@ -1684,7 +1684,7 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
                 <!-- CSS -->
                 <div class="bg-white rounded-lg border-2 border-slate-200 p-4">
                     <div class="flex items-center mb-2">
-                        <i class="far fa-check-square text-green-500 mr-2"></i>
+                        <i class="fas fa-check-square text-green-500 mr-2"></i>
                         <span class="font-semibold text-slate-700">CSS</span>
                     </div>
                     <div class="text-lg font-bold text-slate-800"><span id="summary-css"><?= formatMontant($css) ?></span> F</div>
@@ -1694,7 +1694,7 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
                 <?php if ($rasActif): ?>
                 <div class="bg-white rounded-lg border-2 border-slate-200 p-4">
                     <div class="flex items-center mb-2">
-                        <i class="far fa-check-square text-green-500 mr-2"></i>
+                        <i class="fas fa-check-square text-green-500 mr-2"></i>
                         <span class="font-semibold text-slate-700">Retenue à la Source BIC/IS</span>
                     </div>
                     <div class="text-lg font-bold text-slate-800"><span id="summary-ras"><?= formatMontant($ras) ?></span> F</div>
@@ -1705,7 +1705,7 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
                 <?php if ($locationActif): ?>
                 <div class="bg-white rounded-lg border-2 border-slate-200 p-4">
                     <div class="flex items-center mb-2">
-                        <i class="far fa-check-square text-green-500 mr-2"></i>
+                        <i class="fas fa-check-square text-green-500 mr-2"></i>
                         <span class="font-semibold text-slate-700">TVA/LOC</span>
                     </div>
                     <div class="text-lg font-bold text-slate-800"><span id="summary-tva-location"><?= formatMontant($tvaLocation) ?></span> F</div>
@@ -1716,7 +1716,7 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
                 <?php if ($taxeTouristiqueActif): ?>
                 <div class="bg-white rounded-lg border-2 border-slate-200 p-4">
                     <div class="flex items-center mb-2">
-                        <i class="far fa-check-square text-green-500 mr-2"></i>
+                        <i class="fas fa-check-square text-green-500 mr-2"></i>
                         <span class="font-semibold text-slate-700">Taxe Touristique</span>
                     </div>
                     <div class="text-lg font-bold text-slate-800"><span id="summary-taxe-touristique"><?= formatMontant($taxeTouristique) ?></span> F</div>
