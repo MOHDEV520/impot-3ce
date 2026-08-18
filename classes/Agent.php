@@ -257,8 +257,28 @@ class Agent
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        
-        return isset($_SESSION['connecte']) && $_SESSION['connecte'] === true;
+
+        if (!isset($_SESSION['connecte']) || $_SESSION['connecte'] !== true) {
+            return false;
+        }
+
+        // La session peut référencer un agent qui n'existe plus (supprimé, ou
+        // base restaurée depuis une sauvegarde pendant que la session était
+        // ouverte) : on vérifie qu'il existe toujours plutôt que de faire
+        // confiance au seul flag, sinon getAgentConnecte() renvoie un agent
+        // "fantôme" aux valeurs par défaut (role='agent') qui masque
+        // silencieusement les droits admin sans jamais redemander de connexion.
+        $existe = Database::getInstance()->fetchOne(
+            "SELECT id FROM agents WHERE id = ?",
+            [$_SESSION['agent_id'] ?? 0]
+        );
+        if ($existe === null) {
+            session_unset();
+            session_destroy();
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -269,8 +289,20 @@ class Agent
         if (!self::estConnecte()) {
             return null;
         }
-        
-        return new self($_SESSION['agent_id']);
+
+        $agent = new self();
+        if (!$agent->charger((int) $_SESSION['agent_id'])) {
+            // La session référence un agent qui n'existe plus (supprimé, ou base
+            // restaurée depuis une sauvegarde pendant que la session était ouverte).
+            // On détruit la session au lieu de laisser passer un agent "fantôme"
+            // aux valeurs par défaut (nom vide, role='agent') qui masquerait
+            // silencieusement les droits admin sans jamais redemander de connexion.
+            session_unset();
+            session_destroy();
+            return null;
+        }
+
+        return $agent;
     }
 
     /**
