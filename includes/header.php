@@ -49,7 +49,7 @@ $basePath = strpos($_SERVER['PHP_SELF'], '/pages/') !== false ? '../' : '';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($titrePage) ?> - Gestion Fiscale</title>
     <!-- Tailwind CSS (Offline) -->
-    <link rel="stylesheet" href="<?= $basePath ?>assets/css/style.css?v=1.2">
+    <link rel="stylesheet" href="<?= $basePath ?>assets/css/style.css?v=1.3">
 
     <!-- Font Awesome (Offline) -->
     <link rel="stylesheet" href="<?= $basePath ?>assets/vendor/fontawesome/css/all.min.css?v=1.2">
@@ -69,16 +69,11 @@ $basePath = strpos($_SERVER['PHP_SELF'], '/pages/') !== false ? '../' : '';
     <nav class="bg-primary-900 text-white shadow-xl no-print border-b border-primary-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
-                <!-- Logo et titre -->
+                <!-- Titre -->
                 <div class="flex items-center">
-                    <a href="<?= $basePath ?>pages/dashboard.php" class="flex items-center space-x-3 group">
-                        <div class="w-10 h-10 bg-white rounded flex items-center justify-center p-1 shadow-inner group-hover:scale-105 transition-transform duration-200">
-                            <img src="<?= $basePath ?>assets/img/logo.png" alt="3CE FISCUS" class="w-full h-full object-contain">
-                        </div>
-                        <div class="flex flex-col">
-                            <span class="text-xl font-black tracking-wider leading-none">3CE FISCUS</span>
-                            <span class="text-[10px] text-primary-300 uppercase tracking-widest mt-0.5 font-bold">Système de Gestion Fiscale</span>
-                        </div>
+                    <a href="<?= $basePath ?>pages/dashboard.php" class="flex flex-col group">
+                        <span class="text-xl font-serif font-semibold tracking-widest leading-none group-hover:text-primary-200 transition-colors duration-200">3CE FISCUS</span>
+                        <span class="text-[10px] text-primary-300 uppercase tracking-widest mt-1 font-bold">Système de Gestion Fiscale</span>
                     </a>
                 </div>
                 
@@ -89,8 +84,8 @@ $basePath = strpos($_SERVER['PHP_SELF'], '/pages/') !== false ? '../' : '';
                         <strong class="text-sm font-bold"><?= htmlspecialchars($agentConnecte->getNomComplet()) ?></strong>
                     </div>
                     <div class="h-8 w-px bg-primary-700 hidden lg:block"></div>
-                    <a href="<?= $basePath ?>pages/logout.php" class="flex items-center px-4 py-1.5 bg-red-600/20 hover:bg-red-600 text-red-100 font-bold rounded-lg transition-all border border-red-500/30 text-sm">
-                        <i class="fas fa-sign-out-alt mr-2"></i> Déconnexion
+                    <a href="<?= $basePath ?>pages/logout.php" class="group flex items-center gap-2 px-4 py-1.5 bg-red-500/10 hover:bg-red-600 active:bg-red-700 text-red-100 hover:text-white font-bold rounded-lg transition-colors border border-red-400/30 hover:border-red-600 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:ring-offset-2" style="--tw-ring-offset-color: var(--color-primary-900, #1a3150)">
+                        <i class="fas fa-sign-out-alt transition-transform duration-150 group-hover:translate-x-0.5" aria-hidden="true"></i> Déconnexion
                     </a>
                 </div>
             </div>

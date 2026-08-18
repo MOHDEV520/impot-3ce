@@ -43,10 +43,7 @@ if (isset($client) && $client instanceof Client) {
     <div class="max-w-7xl mx-auto px-4 py-3">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-white rounded flex items-center justify-center p-1 shadow-inner">
-                    <img src="../assets/img/logo.png" alt="3CE FISCUS" class="w-full h-full object-contain">
-                </div>
-                <span class="font-bold text-xl tracking-wider text-white">3CE FISCUS</span>
+                <span class="font-serif font-semibold text-xl tracking-widest text-white">3CE FISCUS</span>
             </div>
             <div class="flex items-center space-x-4">
                 <div class="hidden md:flex flex-col items-end">
@@ -137,7 +134,7 @@ if (isset($client) && $client instanceof Client) {
             </a>
             <a href="sauvegarde.php?client=<?= $clientId ?>&mois=<?= $mois ?>&annee=<?= $annee ?>" 
                class="px-5 py-3 text-sm font-medium whitespace-nowrap <?= $pageActuelle == 'sauvegarde.php' ? 'text-primary-600 border-b-2 border-primary-600' : 'text-slate-600 hover:text-primary-600 hover:bg-slate-50' ?>">
-                <i class="fas fa-database mr-2"></i>MAINTENANCE
+                <i class="fas fa-database mr-2"></i>SAUVEGARDE
             </a>
         </nav>
     </div>

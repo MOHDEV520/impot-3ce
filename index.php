@@ -80,7 +80,7 @@ $moisActuel = [
     <title>Connexion - Système de Gestion Fiscale</title>
     
     <!-- Tailwind CSS (Offline) -->
-    <link rel="stylesheet" href="assets/css/style.css?v=1.2">
+    <link rel="stylesheet" href="assets/css/style.css?v=1.3">
     
     <!-- Font Awesome (Offline) -->
     <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css?v=1.1">
@@ -97,14 +97,10 @@ $moisActuel = [
         <!-- Panneau gauche - Branding -->
         <div class="hidden lg:flex lg:w-1/2 bg-pattern flex-col justify-center items-center text-white p-12">
             <div class="max-w-md text-center">
-                <!-- Logo / Icône -->
-                <div class="mb-8">
-                    <div class="w-32 h-32 bg-white rounded-2xl flex items-center justify-center mx-auto shadow-xl overflow-hidden p-2">
-                        <img src="assets/img/logo.png" alt="3CE FISCUS" class="max-w-full max-h-full">
-                    </div>
-                </div>
-                
                 <!-- Titre -->
+                <div class="mb-4">
+                    <span class="text-3xl font-serif font-semibold tracking-widest">3CE FISCUS</span>
+                </div>
                 <h1 class="text-4xl font-bold mb-2">Gestion Fiscale</h1>
                 <div class="inline-block px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full mb-6">VERSION 1.0</div>
                 <p class="text-xl text-blue-200 mb-8">Cabinet d'Expertise Comptable</p>
