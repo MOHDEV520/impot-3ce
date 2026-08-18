@@ -24,7 +24,7 @@
       "publish": [
         {
           "provider": "github",
-          "owner": "cabinet-fisc",
+          "owner": "MOHDEV520",
           "repo": "impot-3ce"
         }
       ]
