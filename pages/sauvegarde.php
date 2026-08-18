@@ -313,64 +313,31 @@ function formatSize($bytes) {
     }
     return round($bytes, 2) . ' ' . $units[$i];
 }
+$titrePage = 'Sauvegarde';
+require_once APP_ROOT . '/includes/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sauvegarde - Gestion Fiscale</title>
-    <!-- Utilisation des ressources locales pour le 100% Offline -->
-    <link rel="stylesheet" href="../assets/css/style.css?v=1.2">
-    <link rel="stylesheet" href="../assets/vendor/fontawesome/css/all.min.css?v=1.2">
-</head>
-<body class="bg-gray-100 min-h-screen">
-    <!-- Navigation -->
-    <nav class="bg-primary-800 text-white shadow-lg no-print">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <a href="dashboard.php" class="flex items-center">
-                        <div class="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center mr-3">
-                            <i class="fas fa-calculator text-xl"></i>
-                        </div>
-                        <span class="text-xl font-bold">Gestion Fiscale</span>
-                    </a>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-sm text-blue-200"><?= htmlspecialchars($agent->getNomComplet()) ?></span>
-                    <a href="logout.php" class="text-blue-200 hover:text-white"><i class="fas fa-sign-out-alt"></i></a>
-                </div>
-            </div>
-        </div>
-    </nav>
-    
-    <!-- Contenu -->
-    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Breadcrumb -->
-        <nav class="flex mb-6">
+        <nav class="flex mb-6" aria-label="Breadcrumb">
             <ol class="flex items-center space-x-2 text-sm">
                 <li><a href="dashboard.php" class="text-gray-500 hover:text-gray-700">Tableau de bord</a></li>
                 <li><i class="fas fa-chevron-right text-gray-400 text-xs"></i></li>
                 <li class="text-primary-600 font-medium">Sauvegarde</li>
             </ol>
         </nav>
-        
+
         <!-- Titre -->
         <div class="mb-8">
             <h1 class="text-2xl font-bold text-gray-800">Sauvegarde et restauration</h1>
             <p class="text-gray-500 mt-1">Gérez les sauvegardes de la base de données</p>
         </div>
-        
+
         <!-- Message -->
-        <?php if ($message): 
-            $alertClass = $messageType === 'success' ? 'bg-green-50 border-green-500 text-green-700' : 'bg-red-50 border-red-500 text-red-700';
+        <?php if ($message):
+            $alertVariant = $messageType === 'success' ? 'alert-success' : 'alert-error';
         ?>
-        <div class="mb-6 p-4 rounded-lg border-l-4 <?= $alertClass ?>">
-            <div class="flex items-center">
-                <i class="fas <?= $messageType === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle' ?> mr-2"></i>
-                <span><?= htmlspecialchars($message) ?></span>
-            </div>
+        <div class="alert <?= $alertVariant ?> mb-6">
+            <i class="fas <?= $messageType === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle' ?>"></i>
+            <span><?= htmlspecialchars($message) ?></span>
         </div>
         <?php endif; ?>
         
@@ -637,9 +604,9 @@ function formatSize($bytes) {
             
             <?php $st = $transferPreview['stats'] ?? []; ?>
             <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-5">
-                <div class="bg-indigo-50 rounded-lg p-3 text-center">
-                    <div class="text-2xl font-bold text-indigo-600"><?= (int)($st['mois_count'] ?? 0) ?></div>
-                    <div class="text-xs text-indigo-500">Mois</div>
+                <div class="bg-teal-50 rounded-lg p-3 text-center">
+                    <div class="text-2xl font-bold text-teal-600"><?= (int)($st['mois_count'] ?? 0) ?></div>
+                    <div class="text-xs text-teal-500">Mois</div>
                 </div>
                 <div class="bg-green-50 rounded-lg p-3 text-center">
                     <div class="text-2xl font-bold text-green-600"><?= (int)($st['achats_count'] ?? 0) ?></div>
@@ -687,7 +654,7 @@ function formatSize($bytes) {
         <!-- Export / Import CSV -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <!-- Export CSV -->
-            <div class="card line-clamp-1">
+            <div class="card">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4">
                     <i class="fas fa-file-export mr-2 text-primary-500"></i>
                     Exportation de données (CSV)
@@ -701,7 +668,7 @@ function formatSize($bytes) {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-medium text-gray-500 mb-1">Table à exporter</label>
-                            <select name="table" required class="w-full rounded-lg border-gray-300 text-sm">
+                            <select name="table" required class="w-full rounded-lg border-gray-300 text-sm focus:ring-primary-500 focus:border-primary-500 py-2 pl-3 pr-8">
                                 <optgroup label="Données principales">
                                     <option value="clients">Clients</option>
                                     <option value="achats">Achats</option>
@@ -721,7 +688,7 @@ function formatSize($bytes) {
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-500 mb-1">Client</label>
-                            <select name="client_id" class="w-full rounded-lg border-gray-300 text-sm">
+                            <select name="client_id" class="w-full rounded-lg border-gray-300 text-sm focus:ring-primary-500 focus:border-primary-500 py-2 pl-3 pr-8">
                                 <option value="">-- Tous --</option>
                                 <?php foreach ($clients as $c): ?>
                                     <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['nom']) ?></option>
@@ -733,7 +700,7 @@ function formatSize($bytes) {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-medium text-gray-500 mb-1">Mois</label>
-                            <select name="mois" class="w-full rounded-lg border-gray-300 text-sm">
+                            <select name="mois" class="w-full rounded-lg border-gray-300 text-sm focus:ring-primary-500 focus:border-primary-500 py-2 pl-3 pr-8">
                                 <option value="">-- Tous --</option>
                                 <?php foreach ($moisNoms as $num => $nom): ?>
                                     <option value="<?= $num ?>"><?= $nom ?></option>
@@ -742,7 +709,7 @@ function formatSize($bytes) {
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-500 mb-1">Année</label>
-                            <select name="annee" class="w-full rounded-lg border-gray-300 text-sm">
+                            <select name="annee" class="w-full rounded-lg border-gray-300 text-sm focus:ring-primary-500 focus:border-primary-500 py-2 pl-3 pr-8">
                                 <option value="">-- Toutes --</option>
                                 <?php for ($y = date('Y') + 1; $y >= 2020; $y--): ?>
                                     <option value="<?= $y ?>"><?= $y ?></option>
@@ -751,7 +718,7 @@ function formatSize($bytes) {
                         </div>
                     </div>
                     
-                    <button type="submit" class="btn-primary w-full">
+                    <button type="submit" class="btn-primary w-full py-3">
                         <i class="fas fa-file-csv"></i> Télécharger l'export CSV
                     </button>
                 </form>
@@ -814,8 +781,8 @@ function formatSize($bytes) {
                         <!-- Restaurer -->
                         <button type="button"
                                 data-backup="<?= htmlspecialchars($backup['name'], ENT_QUOTES, 'UTF-8') ?>"
-                                onclick="openRestoreModal(this.dataset.backup)" 
-                                class="p-2 text-green-600 hover:bg-green-50 rounded-lg" title="Restaurer">
+                                onclick="openRestoreModal(this.dataset.backup)"
+                                class="inline-flex items-center justify-center w-11 h-11 text-green-600 hover:bg-green-50 rounded-lg" title="Restaurer" aria-label="Restaurer cette sauvegarde">
                             <i class="fas fa-undo"></i>
                         </button>
                     </div>
@@ -837,8 +804,7 @@ function formatSize($bytes) {
                 <li>• La restauration remplace toutes les données actuelles</li>
             </ul>
         </div>
-    </main>
-    
+
     <!-- Modal Restauration -->
     <div id="modal-restore" class="fixed inset-0 bg-black/50 items-center justify-center hidden z-50">
         <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
@@ -905,5 +871,4 @@ function formatSize($bytes) {
             if (e.key === 'Escape') closeRestoreModal();
         });
     </script>
-</body>
-</html>
+<?php require_once APP_ROOT . '/includes/footer.php'; ?>
