@@ -1,6 +1,11 @@
 /**
- * Génère icon.png (1024) et logo.png (512) pour Electron et l'interface web
+ * Génère icon.png (1024) et logo.png (256) pour Electron et l'interface web
  * à partir de assets/img/icon-source.png
+ *
+ * logo.png n'est jamais affiché au-delà de 128px (voir includes/header.php,
+ * includes/navbar-impots.php, index.php, pages/rapport-annuel.php) — 256px
+ * donne une marge 2x confortable pour les écrans haute densité tout en
+ * restant ~8x plus léger que l'ancienne taille de 512px (319 Ko -> ~41 Ko).
  */
 const path = require('path');
 const fs = require('fs');
@@ -28,7 +33,7 @@ async function main() {
         .toFile(iconPath);
 
     await sharp(sourcePath)
-        .resize(512, 512, resizeOpts)
+        .resize(256, 256, resizeOpts)
         .png({ compressionLevel: 9 })
         .toFile(logoPath);
 
