@@ -17,11 +17,11 @@ The app has two run modes sharing the same PHP/MySQL-or-SQLite codebase:
 All commands run from the project root (`npm` scripts drive both the Tailwind build and the Electron packaging):
 
 ```bash
-npm start          # Launch the Electron desktop app (electron .)
-npm run build       # Compile Tailwind CSS: assets/css/input.css -> assets/css/style.css (minified)
-npm run watch        # Tailwind watch mode during CSS development
-npm run dist         # Package the Electron app via electron-builder (output: dist_desktop/)
-npm run icon         # Regenerate app icons (scripts/build-icon.js)
+npm start       # Launch the Electron desktop app (electron .)
+npm run build   # Compile Tailwind CSS: assets/css/input.css -> assets/css/style.css (minified)
+npm run watch   # Tailwind watch mode during CSS development
+npm run dist    # Package the Electron app via electron-builder (output: dist_desktop/)
+npm run icon    # Regenerate app icons (scripts/build-icon.js)
 ```
 
 There is no automated test suite, linter, or CI config in this repo — verify changes manually (see "Manual verification" below).
