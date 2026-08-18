@@ -33,8 +33,12 @@
   --color-gray-100: #f3f4f6;
   --color-gray-200: #e5e7eb;
   --color-gray-300: #d1d5db;
-  --color-gray-400: #9ca3af;
-  --color-gray-500: #6b7280;
+  /* gray-400/500 darkened from Tailwind's stock #9ca3af/#6b7280 (2.5:1 / 4.4:1 —
+     both fail WCAG AA 4.5:1 for body text) to the stock gray-600/700 values.
+     Only ever used as text-gray-400/500 in this codebase (never bg-/border-),
+     so this is a pure contrast fix with no layout side effects. */
+  --color-gray-400: #4b5563;
+  --color-gray-500: #374151;
   --color-gray-600: #4b5563;
   --color-gray-700: #374151;
   --color-gray-800: #1f2937;
@@ -82,24 +86,23 @@
     @apply px-6 py-4 border-b border-slate-100;
   }
 
+  /* Distinction accent/warn/neutral portée par la couleur du libellé (et de la
+     valeur pour warn) plutôt que par une bordure latérale colorée — évite le
+     motif "side-tab" sur les cartes. */
   .card-stat {
-    @apply bg-white rounded-xl shadow-sm border border-slate-100 border-l-4 border-l-slate-300 px-6 py-4 min-w-35;
-  }
-
-  .card-stat-accent {
-    @apply border-l-primary-600;
-  }
-
-  .card-stat-warn {
-    @apply border-l-red-600;
-  }
-
-  .card-stat-neutral {
-    @apply border-l-slate-300;
+    @apply bg-white rounded-xl shadow-sm border border-slate-100 px-6 py-4 min-w-35;
   }
 
   .card-stat-label {
     @apply text-sm text-slate-500;
+  }
+
+  .card-stat-accent .card-stat-label {
+    @apply text-primary-600;
+  }
+
+  .card-stat-warn .card-stat-label {
+    @apply text-red-600;
   }
 
   .card-stat-value {
@@ -108,6 +111,22 @@
 
   .card-stat-warn .card-stat-value {
     @apply text-red-700;
+  }
+
+  /* Bannière de message (succès/erreur) — remplace les 12 variantes de
+     "border-l-4 bg-*-50 text-*-700" copiées-collées page par page. Signale
+     par teinte de fond + icône + couleur de texte, jamais par bordure
+     latérale colorée (motif "side-tab" interdit sur les alertes). */
+  .alert {
+    @apply flex items-center gap-2 p-4 rounded-lg text-sm;
+  }
+
+  .alert-success {
+    @apply bg-green-50 border border-green-200 text-green-700;
+  }
+
+  .alert-error {
+    @apply bg-red-50 border border-red-200 text-red-700;
   }
 
   .badge {

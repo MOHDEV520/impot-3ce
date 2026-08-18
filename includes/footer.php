@@ -28,9 +28,9 @@
         
         // Messages : les succès s'effacent seuls, les erreurs restent jusqu'à fermeture manuelle
         document.addEventListener('DOMContentLoaded', function() {
-            const alerts = document.querySelectorAll('[class*="border-l-4"]');
+            const alerts = document.querySelectorAll('.alert');
             alerts.forEach(function(alert) {
-                const estSucces = /bg-green/.test(alert.className);
+                const estSucces = alert.classList.contains('alert-success');
                 if (estSucces) {
                     setTimeout(function() {
                         alert.style.transition = 'opacity 0.5s ease-out';
@@ -44,7 +44,7 @@
                     btn.className = 'ml-auto pl-4 font-bold opacity-60 hover:opacity-100';
                     btn.innerHTML = '&times;';
                     btn.addEventListener('click', function() { alert.remove(); });
-                    (alert.querySelector('.flex') || alert).appendChild(btn);
+                    alert.appendChild(btn);
                 }
             });
         });
