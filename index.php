@@ -22,13 +22,6 @@ if (!$db->tablesExist()) {
     $db->initialiserBaseDeDonnees();
 }
 
-// Sécurité supplémentaire : S'assurer que l'admin est présent
-// Utile si la base a été créée mais l'insert a échoué précédemment
-if (isset($_GET['repair']) && $_GET['repair'] === '1') {
-    // La méthode assurerAdminExiste est privée dans Database, mais appelée au getInstance.
-    // On peut forcer un re-check en demandant une nouvelle instance ou par un script dédié
-}
-
 // Vérifier si au moins un agent existe
 $stmt = $db->getConnection()->query("SELECT COUNT(*) FROM agents");
 $nbAgents = (int)$stmt->fetchColumn();
@@ -44,10 +37,11 @@ if (Agent::estConnecte()) {
 }
 
 // Traitement du formulaire de connexion
-$erreur = '';
+// (on préserve le message "base vide" ci-dessus s'il a été positionné)
+$erreur = $erreur ?? '';
 $email = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($nbAgents > 0 && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
     $motDePasse = $_POST['mot_de_passe'] ?? '';
     
@@ -86,16 +80,17 @@ $moisActuel = [
     <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css?v=1.1">
     
     <style>
+        /* Motif du panneau de marque — appliqué sur bg-primary-800 (voir input.css)
+           pour rester sur la palette 3CE FISCUS plutôt qu'un bleu Tailwind générique. */
         .bg-pattern {
-            background-color: #1e3a8a;
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%232563eb' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23345f8d' fill-opacity='0.18'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
     </style>
 </head>
 <body class="min-h-screen bg-gray-100">
     <div class="min-h-screen flex">
         <!-- Panneau gauche - Branding -->
-        <div class="hidden lg:flex lg:w-1/2 bg-pattern flex-col justify-center items-center text-white p-12">
+        <div class="hidden lg:flex lg:w-1/2 bg-primary-800 bg-pattern flex-col justify-center items-center text-white p-12">
             <div class="max-w-md text-center">
                 <!-- Titre -->
                 <div class="mb-4">
@@ -163,11 +158,9 @@ $moisActuel = [
                     
                     <!-- Message d'erreur -->
                     <?php if ($erreur): ?>
-                    <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-lg">
-                        <div class="flex items-center">
-                            <i class="fas fa-exclamation-circle mr-2"></i>
-                            <span><?= htmlspecialchars($erreur) ?></span>
-                        </div>
+                    <div class="alert alert-error mb-6"<?= $nbAgents === 0 ? ' data-persistent="true"' : '' ?>>
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span><?= htmlspecialchars($erreur) ?></span>
                     </div>
                     <?php endif; ?>
                     
@@ -186,6 +179,7 @@ $moisActuel = [
                                 value="<?= htmlspecialchars($email) ?>"
                                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
                                 placeholder="votre@email.com"
+                                autocomplete="email"
                                 required
                                 autofocus
                             >
@@ -204,12 +198,15 @@ $moisActuel = [
                                     name="mot_de_passe"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors pr-12"
                                     placeholder="••••••••"
+                                    autocomplete="current-password"
                                     required
                                 >
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     onclick="togglePassword()"
                                     class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    title="Afficher/masquer le mot de passe"
+                                    aria-label="Afficher ou masquer le mot de passe"
                                 >
                                     <i class="fas fa-eye" id="toggleIcon"></i>
                                 </button>
@@ -217,9 +214,9 @@ $moisActuel = [
                         </div>
                         
                         <!-- Bouton de connexion -->
-                        <button 
+                        <button
                             type="submit"
-                            class="w-full py-3 px-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center space-x-2"
+                            class="btn-primary w-full py-3"
                         >
                             <i class="fas fa-sign-in-alt"></i>
                             <span>Se connecter</span>
@@ -261,8 +258,9 @@ $moisActuel = [
             }
         }
         
-        // Auto-hide error message after 5 seconds
-        const errorMessage = document.querySelector('.bg-red-50');
+        // Auto-hide error message after 5 seconds (sauf message persistant :
+        // ex. "base de données vide", qui demande une action de l'admin)
+        const errorMessage = document.querySelector('.alert-error:not([data-persistent])');
         if (errorMessage) {
             setTimeout(() => {
                 errorMessage.style.transition = 'opacity 0.5s ease-out';
