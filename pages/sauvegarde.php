@@ -375,7 +375,7 @@ require_once APP_ROOT . '/includes/header.php';
             </div>
             
             <!-- Bouton sauvegarde -->
-            <form method="POST" class="mt-4 pt-4 border-t border-gray-100">
+            <form method="POST" class="mt-4 pt-4 border-t border-gray-100" onsubmit="showFormLoading(this, 'Sauvegarde en cours...')">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                 <h3 class="text-md font-medium text-gray-700 mb-3">Créer une nouvelle sauvegarde complète</h3>
                 
@@ -661,7 +661,7 @@ require_once APP_ROOT . '/includes/header.php';
                 </h2>
                 <p class="text-sm text-gray-500 mb-4">Exportez des tables spécifiques filtrées par mois ou par client.</p>
                 
-                <form method="POST" target="_blank" class="space-y-4">
+                <form method="POST" target="_blank" class="space-y-4" onsubmit="showFormLoading(this, 'Génération en cours...', 3000)">
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                     <input type="hidden" name="action" value="export_csv">
                     
@@ -811,7 +811,7 @@ require_once APP_ROOT . '/includes/header.php';
             <div class="px-6 py-4 border-b border-gray-200">
                 <h3 class="text-lg font-semibold text-gray-800">Confirmer la restauration</h3>
             </div>
-            <form method="POST" class="p-6">
+            <form method="POST" class="p-6" onsubmit="showFormLoading(this, 'Restauration en cours...')">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                 <input type="hidden" name="action" value="restore">
                 <input type="hidden" name="backup_file" id="restore-file">
@@ -853,6 +853,24 @@ require_once APP_ROOT . '/includes/header.php';
     </div>
     
     <script>
+        // Désactive le bouton et affiche un spinner pendant une action longue
+        // (mysqldump/VACUUM INTO, export CSV...). resetDelayMs n'est utile que
+        // pour les formulaires qui ne rechargent pas la page (target="_blank") :
+        // sinon le bouton se réactive naturellement au rechargement.
+        function showFormLoading(form, label, resetDelayMs) {
+            const btn = form.querySelector('button[type="submit"]');
+            if (!btn) return;
+            btn.disabled = true;
+            btn.dataset.originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + (label || 'Veuillez patienter...');
+            if (resetDelayMs) {
+                setTimeout(function () {
+                    btn.disabled = false;
+                    btn.innerHTML = btn.dataset.originalHtml;
+                }, resetDelayMs);
+            }
+        }
+
         function openRestoreModal(filename) {
             document.getElementById('restore-file').value = filename;
             document.getElementById('restore-filename').textContent = filename;

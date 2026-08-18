@@ -296,7 +296,7 @@ $pageTitle = "Gestion des Dépenses - " . htmlspecialchars($client['nom']);
                                         class="btn-primary px-3 py-1.5 text-sm">
                                     <i class="fas fa-edit"></i> Modifier
                                 </button>
-                                <form method="POST" class="inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette dépense ?');">
+                                <form method="POST" class="inline" onsubmit="return Dialog.confirmSubmit(event, 'Êtes-vous sûr de vouloir supprimer cette dépense ?', {danger: true, confirmLabel: 'Supprimer'});">
                                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                                     <input type="hidden" name="action" value="supprimer">
                                     <input type="hidden" name="depense_id" value="<?= $depense['id'] ?>">
@@ -445,6 +445,7 @@ $pageTitle = "Gestion des Dépenses - " . htmlspecialchars($client['nom']);
         </div>
     </div>
 
+    <script src="../assets/js/dialog.js"></script>
     <script>
         function ouvrirModal() {
             const getEl = (id) => document.getElementById(id);
@@ -467,7 +468,7 @@ $pageTitle = "Gestion des Dépenses - " . htmlspecialchars($client['nom']);
             try {
                 ouvrirModification(JSON.parse(btn.dataset.depense));
             } catch (e) {
-                alert("Impossible d'ouvrir cette dépense (données illisibles). Détail : " + e.message);
+                Dialog.alert("Impossible d'ouvrir cette dépense (données illisibles). Détail : " + e.message, {kind: 'error'});
             }
         }
 

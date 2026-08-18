@@ -15,17 +15,13 @@
     </footer>
     
     <!-- Scripts communs -->
+    <script src="<?= $basePath ?>assets/js/dialog.js"></script>
     <script>
         // Formater les montants
         function formatMontant(montant) {
             return new Intl.NumberFormat('fr-FR').format(montant) + ' FCFA';
         }
-        
-        // Confirmation avant action
-        function confirmer(message) {
-            return confirm(message || 'Êtes-vous sûr ?');
-        }
-        
+
         // Messages : les succès s'effacent seuls, les erreurs restent jusqu'à fermeture manuelle
         document.addEventListener('DOMContentLoaded', function() {
             const alerts = document.querySelectorAll('.alert');

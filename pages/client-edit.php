@@ -519,9 +519,9 @@ require_once APP_ROOT . '/includes/header.php';
         }
         
         function confirmDelete() {
-            if (confirm('Êtes-vous sûr de vouloir supprimer ce client ?\nCette action est irréversible.')) {
-                document.getElementById('form-delete-client').submit();
-            }
+            Dialog.confirm('Êtes-vous sûr de vouloir supprimer ce client ?\nCette action est irréversible.', {danger: true, confirmLabel: 'Supprimer'}).then(function (ok) {
+                if (ok) document.getElementById('form-delete-client').submit();
+            });
         }
     </script>
     <form id="form-delete-client" method="POST" action="client-delete.php" class="hidden">

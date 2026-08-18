@@ -229,7 +229,7 @@ require_once APP_ROOT . '/includes/header.php';
                                 
                                 <?php if ($a['id'] !== $agent->getId()): ?>
                                     <?php if ($a['statut'] === 'actif'): ?>
-                                    <form method="POST" class="inline" onsubmit="return confirm('Désactiver cet agent ?')">
+                                    <form method="POST" class="inline" onsubmit="return Dialog.confirmSubmit(event, 'Désactiver cet agent ?', {confirmLabel: 'Désactiver'})">
                                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
                                         <input type="hidden" name="action" value="supprimer">
                                         <input type="hidden" name="agent_id" value="<?= $a['id'] ?>">
@@ -413,7 +413,7 @@ require_once APP_ROOT . '/includes/header.php';
             try {
                 openEditModal(JSON.parse(btn.dataset.agent));
             } catch (e) {
-                alert("Impossible d'ouvrir cet agent (données illisibles). Détail : " + e.message);
+                Dialog.alert("Impossible d'ouvrir cet agent (données illisibles). Détail : " + e.message, {kind: 'error'});
             }
         }
 
