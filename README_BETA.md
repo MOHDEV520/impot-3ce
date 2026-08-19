@@ -6,7 +6,7 @@ Bienvenue dans la version Beta du Système de Gestion Fiscale. Cette version est
 
 **[⬇️ Télécharger la dernière release](https://github.com/MOHDEV520/impot-3ce/releases/latest)**
 
-Ce lien pointe toujours vers la dernière version publiée ; version actuelle : **v1.0.4**.
+Ce lien pointe toujours vers la dernière version publiée ; version actuelle : **v1.0.5**.
 Une fois installée, l'application se met à jour automatiquement au démarrage (aucune action requise ensuite).
 
 ## 🚀 Fonctionnalités en Beta
@@ -17,7 +17,7 @@ Une fois installée, l'application se met à jour automatiquement au démarrage 
 
 ## ⚠️ Notes Importantes pour la Beta
 1. **Données de test** : Évitez de saisir des données réelles critiques sans sauvegarde régulière.
-2. **Installation** : Utilisez le fichier `impot-3ce-setup-1.0.4.exe` téléchargé ci-dessus pour installer l'application.
+2. **Installation** : Utilisez le fichier `impot-3ce-setup-1.0.5.exe` téléchargé ci-dessus pour installer l'application.
 3. **Identifiants par défaut** : 
    - Email : `admin@cabinet.local`
    - Mot de passe : `admin123`
