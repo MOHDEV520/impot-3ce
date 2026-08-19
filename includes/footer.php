@@ -25,6 +25,12 @@
         // Messages : les succès s'effacent seuls, les erreurs restent jusqu'à fermeture manuelle
         document.addEventListener('DOMContentLoaded', function() {
             const alerts = document.querySelectorAll('.alert');
+            // Le message peut apparaître loin sous le pli (ex: bouton "Sauvegarder"
+            // au milieu d'une longue page) : on le ramène toujours à l'écran pour
+            // qu'un succès/échec ne passe jamais inaperçu.
+            if (alerts.length) {
+                alerts[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
             alerts.forEach(function(alert) {
                 const estSucces = alert.classList.contains('alert-success');
                 if (estSucces) {
