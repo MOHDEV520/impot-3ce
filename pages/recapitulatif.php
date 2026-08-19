@@ -224,7 +224,10 @@ $locTvaCollectee = round($locBase * 18 / 100);
 $tvaLocation = $locationActif ? max(0, $locTvaCollectee - (float)($compteGestion['loc_ligne145'] ?? 0)) : 0;
 
 // 2g. Retenue à la Source BIC/IS (si activée pour ce client)
-$ras = $rasActif ? Impot::calculerRetenueSourceBIC($compteGestion)['430'] : 0;
+// $compteGestion peut être null (aucune ligne compte_gestion_mensuel enregistrée
+// pour ce mois) : calculerRetenueSourceBIC() exige un array, d'où un TypeError
+// fatal qui faisait planter toute la page avant d'atteindre le récapitulatif.
+$ras = $rasActif ? Impot::calculerRetenueSourceBIC($compteGestion ?? [])['430'] : 0;
 
 // 2h. Taxe Touristique (Loi n°96-052) - Lig. 510 x 520, si activée pour ce client
 $taxeTouristiqueActif = $parametresFiscaux ? (int)($parametresFiscaux['taxe_touristique_actif'] ?? 0) : 0;
