@@ -353,8 +353,14 @@ require_once APP_ROOT . '/includes/header.php';
                 try {
                     if (window.electronAPI) {
                         const result = await window.electronAPI.checkForUpdates();
-                        
-                        if (result && result.updateInfo) {
+
+                        // result.updateInfo est TOUJOURS présent (dispo ou pas) : c'est juste
+                        // l'info sur la dernière version du flux GitHub, pas un indicateur de
+                        // mise à jour. Le vrai indicateur est result.isUpdateAvailable.
+                        if (result && result.error) {
+                            msg.textContent = "Erreur lors de la vérification : " + result.error;
+                            msg.classList.add('bg-red-50', 'border-red-200', 'text-red-700');
+                        } else if (result && result.isUpdateAvailable) {
                             msg.textContent = "Une mise à jour est disponible (" + result.updateInfo.version + "). Le téléchargement va commencer.";
                             msg.classList.add('bg-blue-50', 'border-blue-200', 'text-blue-800');
                         } else {

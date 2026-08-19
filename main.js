@@ -12,9 +12,13 @@ autoUpdater.autoDownload = true;
 autoUpdater.allowPrerelease = false;
 
 // Gestion des messages IPC
+// checkForUpdates() (pas ...AndNotify) : on gère nous-mêmes le retour visuel
+// (voir le dialogue sur 'update-downloaded' plus bas) pour éviter la double
+// notification — la notification Windows native intégrée à AndNotify() en
+// plus de notre boîte de dialogue personnalisée pour le même événement.
 ipcMain.handle('check-for-updates', async () => {
     try {
-        const result = await autoUpdater.checkForUpdatesAndNotify();
+        const result = await autoUpdater.checkForUpdates();
         return result;
     } catch (error) {
         return { error: error.message };
@@ -344,8 +348,12 @@ app.on('before-quit', function () {
 app.on('ready', () => {
     createWindow();
     
-    // Gestion des mises à jour
-    autoUpdater.checkForUpdatesAndNotify();
+    // Gestion des mises à jour au démarrage. checkForUpdates() (pas
+    // ...AndNotify) pour éviter la notification Windows native en double de
+    // notre dialogue 'update-downloaded' ci-dessous. Le rejet est ignoré ici
+    // volontairement : l'écouteur 'error' juste en dessous le journalise déjà
+    // (ex: pas de connexion internet au lancement) sans interrompre l'appli.
+    autoUpdater.checkForUpdates().catch(() => {});
 
     autoUpdater.on('update-available', () => {
         console.log('Mise à jour disponible.');
