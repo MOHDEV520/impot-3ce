@@ -194,6 +194,59 @@ abstract class Impot
     }
 
     /**
+     * Droit de timbre sur les paiements en espèces (Art. 397, barème simplifié)
+     * < 1 000 F : 40 F ; 1 000 à 10 000 F : 120 F ; 10 000 à 50 000 F : 240 F ;
+     * au-delà : montant / 50 000 x 160 (arrondi au franc).
+     */
+    public static function calculerDroitTimbre(float $montant): float
+    {
+        if ($montant <= 0) {
+            return 0.0;
+        }
+        if ($montant < 1000) {
+            return 40.0;
+        }
+        if ($montant <= 10000) {
+            return 120.0;
+        }
+        if ($montant <= 50000) {
+            return 240.0;
+        }
+        return (float) round($montant / 50000 * 160);
+    }
+
+    /**
+     * Lire un montant saisi ("1 250 000", "75000,50") : null si vide ou non numérique
+     */
+    public static function lireMontantSaisi($brut): ?float
+    {
+        if ($brut === null) {
+            return null;
+        }
+        $nettoye = str_replace([' ', "\u{00A0}", "\u{202F}", ','], ['', '', '', '.'], trim((string) $brut));
+        if ($nettoye === '' || !is_numeric($nettoye)) {
+            return null;
+        }
+        return max(0.0, (float) $nettoye);
+    }
+
+    /**
+     * Droit de timbre du mois : 0 si inactif, montant saisi s'il existe, sinon barème
+     * appliqué au total encaissé en espèces.
+     */
+    public static function droitTimbreMensuel(?array $params, ?array $compte): float
+    {
+        if (!$params || empty($params['timbre_actif']) || !$compte) {
+            return 0.0;
+        }
+        $manuel = $compte['timbre_montant_manuel'] ?? null;
+        if ($manuel !== null && $manuel !== '') {
+            return (float) round(max(0.0, (float) $manuel));
+        }
+        return self::calculerDroitTimbre((float) ($compte['timbre_encaissements_especes'] ?? 0));
+    }
+
+    /**
      * Convertir en tableau
      */
     public function toArray(): array
