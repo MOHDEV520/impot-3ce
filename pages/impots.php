@@ -64,6 +64,7 @@ $irfTfActif = $parametresFiscaux ? (int)($parametresFiscaux['irf_tf_actif'] ?? 0
 $salairesActif = $parametresFiscaux ? (int)($parametresFiscaux['salaires_actif'] ?? 0) : 0;
 $rasActif = $parametresFiscaux ? (int)($parametresFiscaux['ras_actif'] ?? 0) : 0;
 $taxeTouristiqueActif = $parametresFiscaux ? (int)($parametresFiscaux['taxe_touristique_actif'] ?? 0) : 0;
+$timbreActif = $parametresFiscaux ? (int)($parametresFiscaux['timbre_actif'] ?? 0) : 0;
 $typeTva = $parametresFiscaux ? ($parametresFiscaux['type_tva'] ?? 'non_exonere') : 'non_exonere';
 
 // Autres taux fiscaux
@@ -118,6 +119,15 @@ if ($taxeTouristiqueLigne510Raw !== null) {
     $taxeTouristiqueLigne510 = $tarifSauvegarde > 0 ? $tarifSauvegarde : ($taxeTouristiqueType === 'transport' ? 2500 : 500);
 }
 $taxeTouristiqueLigne520 = (float)($_POST['taxe_touristique_ligne520'] ?? $_GET['taxe_touristique_ligne520'] ?? $compteGestion->getTaxeTouristiqueLigne520() ?? 0);
+
+// Droit de timbre (paiements en espèces) - chargé depuis POST/GET ou base
+$timbreEncaissementsEspeces = Impot::lireMontantSaisi($_POST['timbre_encaissements_especes'] ?? $_GET['timbre_encaissements_especes'] ?? null)
+    ?? $compteGestion->getTimbreEncaissementsEspeces();
+if (isset($_POST['timbre_montant_manuel']) || isset($_GET['timbre_montant_manuel'])) {
+    $timbreMontantManuel = Impot::lireMontantSaisi($_POST['timbre_montant_manuel'] ?? $_GET['timbre_montant_manuel']);
+} else {
+    $timbreMontantManuel = $compteGestion->getTimbreMontantManuel();
+}
 
 // Lignes TVA (chargées depuis POST/GET ou base)
 $tvaLigne82 = (float)($_POST['tva_ligne82'] ?? $_GET['tva_ligne82'] ?? $compteGestion->getTvaLigne82() ?? 0);
@@ -263,8 +273,15 @@ $tvaLocation = $locationActif ? max(0, $tvaLocationCollectee - $locLigne145) : 0
 // Taxe Touristique : Lig. 810 = Lig. 510 (tarif) x Lig. 520 (nuitées/passagers)
 $taxeTouristique = $taxeTouristiqueActif ? round($taxeTouristiqueLigne510 * $taxeTouristiqueLigne520, 2) : 0;
 
+// Droit de timbre : montant saisi s'il existe, sinon barème sur le total encaissé en espèces
+$droitTimbreCalcule = Impot::calculerDroitTimbre($timbreEncaissementsEspeces);
+$droitTimbre = Impot::droitTimbreMensuel(
+    ['timbre_actif' => $timbreActif],
+    ['timbre_encaissements_especes' => $timbreEncaissementsEspeces, 'timbre_montant_manuel' => $timbreMontantManuel]
+);
+
 // Total général
-$totalImpots = $tvaNette + $cf + $tl + $its + $tf + $irf + $css + $tvaLocation + $ras + $taxeTouristique;
+$totalImpots = $tvaNette + $cf + $tl + $its + $tf + $irf + $css + $tvaLocation + $ras + $taxeTouristique + $droitTimbre;
 
 // Type d'impôt sélectionné (avec protection contre les types désactivés)
 $typeImpot = $_GET['type'] ?? 'tva';
@@ -273,6 +290,7 @@ if ($typeImpot === 'tva-location' && !$locationActif) $typeImpot = 'tva';
 if (in_array($typeImpot, ['cf', 'tl', 'its']) && !$salairesActif) $typeImpot = 'tva';
 if ($typeImpot === 'ras' && !$rasActif) $typeImpot = 'tva';
 if ($typeImpot === 'taxe_touristique' && !$taxeTouristiqueActif) $typeImpot = 'tva';
+if ($typeImpot === 'timbre' && !$timbreActif) $typeImpot = 'tva';
 
 // Traitement formulaire
 $message = '';
@@ -299,6 +317,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $postTaxeTouristiqueType = $_POST['taxe_touristique_type'] ?? 'hebergement';
             $postTaxeTouristiqueLigne510 = (float) str_replace([' ', ','], ['', '.'], $_POST['taxe_touristique_ligne510'] ?? 0);
             $postTaxeTouristiqueLigne520 = (float) str_replace([' ', ','], ['', '.'], $_POST['taxe_touristique_ligne520'] ?? 0);
+
+            // Droit de timbre
+            $postTimbreEncaissements = Impot::lireMontantSaisi($_POST['timbre_encaissements_especes'] ?? null) ?? 0.0;
+            $postTimbreManuel = Impot::lireMontantSaisi($_POST['timbre_montant_manuel'] ?? null);
 
             // Lignes TVA Location
             $postLocLigne132 = (float) str_replace([' ', ','], ['', '.'], $_POST['loc_ligne132'] ?? 0);
@@ -401,6 +423,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                           ->setTaxeTouristiqueType($postTaxeTouristiqueType)
                           ->setTaxeTouristiqueLigne510($postTaxeTouristiqueLigne510)
                           ->setTaxeTouristiqueLigne520($postTaxeTouristiqueLigne520)
+                          ->setTimbreEncaissementsEspeces($postTimbreEncaissements)
+                          ->setTimbreMontantManuel($postTimbreManuel)
                           ->setIts($postIts)
                           ->setMarge($postMarge)
                           ->setMargeTaxable($postMargeTaxable);
@@ -462,7 +486,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $taxe_touristique_new = $taxeTouristiqueActif ? round($postTaxeTouristiqueLigne510 * $postTaxeTouristiqueLigne520, 2) : 0;
 
-            $total_new = $tva_nette_new + $cf_new + $tl_new + $postIts + $tf_new + $irf_new + $css_new + $tva_loc_new + $ras_new + $taxe_touristique_new;
+            $droit_timbre_new = Impot::droitTimbreMensuel(
+                ['timbre_actif' => $timbreActif],
+                ['timbre_encaissements_especes' => $postTimbreEncaissements, 'timbre_montant_manuel' => $postTimbreManuel]
+            );
+
+            $total_new = $tva_nette_new + $cf_new + $tl_new + $postIts + $tf_new + $irf_new + $css_new + $tva_loc_new + $ras_new + $taxe_touristique_new + $droit_timbre_new;
 
             // Mise à jour de la table impots_mensuels pour les rapports
             $sqlCheck = "SELECT id FROM impots_mensuels WHERE client_id = ? AND mois = ? AND annee = ?";
@@ -470,14 +499,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($existingImpots) {
                 $sqlImpots = "UPDATE impots_mensuels SET
-                    tva_a_payer = ?, cf = ?, its = ?, tl = ?, irf = ?, tf = ?, css = ?, tva_location = ?, ras = ?, taxe_touristique = ?, total_impots = ?,
+                    tva_a_payer = ?, cf = ?, its = ?, tl = ?, irf = ?, tf = ?, css = ?, tva_location = ?, ras = ?, taxe_touristique = ?, droit_timbre = ?, total_impots = ?,
                     date_calcul = CURRENT_TIMESTAMP
                     WHERE id = ?";
-                $db->update($sqlImpots, [$tva_nette_new, $cf_new, $postIts, $tl_new, $irf_new, $tf_new, $css_new, $tva_loc_new, $ras_new, $taxe_touristique_new, $total_new, $existingImpots['id']]);
+                $db->update($sqlImpots, [$tva_nette_new, $cf_new, $postIts, $tl_new, $irf_new, $tf_new, $css_new, $tva_loc_new, $ras_new, $taxe_touristique_new, $droit_timbre_new, $total_new, $existingImpots['id']]);
             } else {
-                $sqlImpots = "INSERT INTO impots_mensuels (client_id, compte_gestion_id, mois, annee, tva_a_payer, cf, its, tl, irf, tf, css, tva_location, ras, taxe_touristique, total_impots)
-                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                $db->insert($sqlImpots, [$clientId, $compteGestion->getId(), $mois, $annee, $tva_nette_new, $cf_new, $postIts, $tl_new, $irf_new, $tf_new, $css_new, $tva_loc_new, $ras_new, $taxe_touristique_new, $total_new]);
+                $sqlImpots = "INSERT INTO impots_mensuels (client_id, compte_gestion_id, mois, annee, tva_a_payer, cf, its, tl, irf, tf, css, tva_location, ras, taxe_touristique, droit_timbre, total_impots)
+                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                $db->insert($sqlImpots, [$clientId, $compteGestion->getId(), $mois, $annee, $tva_nette_new, $cf_new, $postIts, $tl_new, $irf_new, $tf_new, $css_new, $tva_loc_new, $ras_new, $taxe_touristique_new, $droit_timbre_new, $total_new]);
             }
             
             $message = 'Données enregistrées avec succès.';
@@ -560,6 +589,9 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
                             <?php endif; ?>
                             <?php if ($taxeTouristiqueActif): ?>
                             <option value="taxe_touristique" <?= $typeImpot === 'taxe_touristique' ? 'selected' : '' ?>>Taxe Touristique</option>
+                            <?php endif; ?>
+                            <?php if ($timbreActif): ?>
+                            <option value="timbre" <?= $typeImpot === 'timbre' ? 'selected' : '' ?>>Droit de Timbre</option>
                             <?php endif; ?>
                         </select>
                     </div>
@@ -1377,6 +1409,46 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
             </div>
             <?php endif; ?>
 
+            <!-- Section Droit de Timbre - paiements en espèces (Art. 397) -->
+            <?php if ($timbreActif): ?>
+            <div id="section-timbre" class="<?= $typeImpot !== 'timbre' ? 'hidden' : '' ?>">
+                <div class="bg-white rounded-xl shadow-sm border overflow-hidden mb-6">
+                    <table class="tva-form">
+                        <thead>
+                            <tr>
+                                <th class="col-ligne">Réf.</th>
+                                <th>Désignation</th>
+                                <th class="col-montant">Montant</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="row-section"><td colspan="3"><i class="fas fa-stamp mr-1"></i> Droit de Timbre sur les paiements en espèces (Art. 397)</td></tr>
+                            <tr>
+                                <td class="td-ligne">A</td>
+                                <td>Total encaissé en espèces dans le mois</td>
+                                <td class="td-montant"><input type="text" inputmode="decimal" name="timbre_encaissements_especes" id="timbre_encaissements_especes" class="input-manual" style="width:150px;" value="<?= $timbreEncaissementsEspeces > 0 ? htmlspecialchars((string) $timbreEncaissementsEspeces) : '' ?>" oninput="recalcTimbre()"></td>
+                            </tr>
+                            <tr>
+                                <td class="td-ligne">B</td>
+                                <td>Droit de timbre calculé <span class="text-xs font-normal text-slate-500">(&lt; 1 000 F : 40 F · jusqu'à 10 000 F : 120 F · jusqu'à 50 000 F : 240 F · au-delà : montant ÷ 50 000 × 160)</span></td>
+                                <td class="td-montant" id="timbre_val_calcule"><?= formatMontant($droitTimbreCalcule) ?></td>
+                            </tr>
+                            <tr>
+                                <td class="td-ligne">C</td>
+                                <td>Montant du timbre saisi <span class="text-xs font-normal text-slate-500">(facultatif — remplace le calcul ; le barème appliqué au total peut être inférieur au timbre réel quand il y a plusieurs reçus)</span></td>
+                                <td class="td-montant"><input type="text" inputmode="decimal" name="timbre_montant_manuel" id="timbre_montant_manuel" class="input-manual" style="width:150px;" value="<?= $timbreMontantManuel !== null ? htmlspecialchars((string) $timbreMontantManuel) : '' ?>" oninput="recalcTimbre()"></td>
+                            </tr>
+                            <tr class="row-result">
+                                <td class="td-ligne" style="background:#dcfce7; color:#16a34a;">=</td>
+                                <td style="color:#16a34a;">Droit de Timbre à Payer <span class="text-xs font-normal">(C si saisi, sinon B)</span></td>
+                                <td class="td-montant" id="timbre_val_net" style="font-size:16px; color:#16a34a;"><?= formatMontant($droitTimbre) ?></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <?php endif; ?>
+
             <!-- Section RAS - Retenue à la Source BIC/IS (lignes 400-430) -->
             <?php if ($rasActif): ?>
             <div id="section-ras" class="<?= $typeImpot !== 'ras' ? 'hidden' : '' ?>">
@@ -1722,6 +1794,17 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
                     <div class="text-lg font-bold text-slate-800"><span id="summary-taxe-touristique"><?= formatMontant($taxeTouristique) ?></span> F</div>
                 </div>
                 <?php endif; ?>
+
+                <!-- Droit de Timbre -->
+                <?php if ($timbreActif): ?>
+                <div class="bg-white rounded-lg border-2 border-slate-200 p-4">
+                    <div class="flex items-center mb-2">
+                        <i class="fas fa-check-square text-green-500 mr-2"></i>
+                        <span class="font-semibold text-slate-700">Droit de Timbre</span>
+                    </div>
+                    <div class="text-lg font-bold text-slate-800"><span id="summary-timbre"><?= formatMontant($droitTimbre) ?></span> F</div>
+                </div>
+                <?php endif; ?>
             </div>
 
             <!-- Total et boutons -->
@@ -1806,6 +1889,7 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
         if (itsInput) url.searchParams.set('its', itsInput.value || 0);
         
         conserverLocLignes(url);
+        conserverTimbre(url);
         window.location.href = url.toString();
     }
 
@@ -1826,6 +1910,7 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
         if (itsInput) url.searchParams.set('its', itsInput.value || 0);
         
         conserverLocLignes(url);
+        conserverTimbre(url);
         
         const hiddenMarg = getEl('hiddenMarge');
         if (hiddenMarg) hiddenMarg.value = marge;
@@ -1851,6 +1936,7 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
         if (itsInput) url.searchParams.set('its', itsInput.value || 0);
         
         conserverLocLignes(url);
+        conserverTimbre(url);
         
         const hiddenMargTax = getEl('hiddenMargeTaxable');
         if (hiddenMargTax) hiddenMargTax.value = marge;
@@ -2033,7 +2119,9 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
         const ras = <?= $rasActif ? '1' : '0' ?> ? parseValue('ras_val430') : 0;
         const taxeTouristique = <?= $taxeTouristiqueActif ? '1' : '0' ?> ? parseValue('taxe_touristique_val810') : 0;
         const sTaxeTouristique = getEl('summary-taxe-touristique'); if (sTaxeTouristique) sTaxeTouristique.textContent = fmt(taxeTouristique);
-        const total = tva + cf + tl + its + tf + irf + css + tvaLocFinal + ras + taxeTouristique;
+        const droitTimbre = <?= $timbreActif ? '1' : '0' ?> ? parseValue('timbre_val_net') : 0;
+        const sTimbre = getEl('summary-timbre'); if (sTimbre) sTimbre.textContent = fmt(droitTimbre);
+        const total = tva + cf + tl + its + tf + irf + css + tvaLocFinal + ras + taxeTouristique + droitTimbre;
         const totalGlob = getEl('total-global'); if (totalGlob) totalGlob.textContent = fmt(total);
     }
 
@@ -2097,6 +2185,32 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
         updateSummary();
     }
 
+    // Droit de timbre : copie conforme de Impot::calculerDroitTimbre()
+    function calculerDroitTimbreJS(montant) {
+        if (montant <= 0) return 0;
+        if (montant < 1000) return 40;
+        if (montant <= 10000) return 120;
+        if (montant <= 50000) return 240;
+        return Math.round(montant / 50000 * 160);
+    }
+
+    function recalcTimbre() {
+        const calcule = calculerDroitTimbreJS(parseInput('timbre_encaissements_especes'));
+        const elManuel = getEl('timbre_montant_manuel');
+        const manuelBrut = elManuel ? elManuel.value.replace(/[\s\u00A0\u202F]/g, '').replace(',', '.') : '';
+        const net = (manuelBrut === '' || isNaN(parseFloat(manuelBrut))) ? calcule : Math.max(0, Math.round(parseFloat(manuelBrut)));
+        const elCalc = getEl('timbre_val_calcule'); if (elCalc) elCalc.textContent = fmt(calcule);
+        const elNet = getEl('timbre_val_net'); if (elNet) elNet.textContent = fmt(net);
+        updateSummary();
+    }
+
+    // Conserver les saisies timbre dans l'URL lors d'un changement de type ou de marge
+    function conserverTimbre(url) {
+        let el;
+        el = getEl('timbre_encaissements_especes'); if (el) url.searchParams.set('timbre_encaissements_especes', el.value);
+        el = getEl('timbre_montant_manuel'); if (el) url.searchParams.set('timbre_montant_manuel', el.value);
+    }
+
     function recalcAll() {
         if (typeof recalcTVA === 'function') recalcTVA();
         if (typeof recalcCF === 'function') recalcCF();
@@ -2104,6 +2218,7 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
         if (typeof recalcTvaLocation === 'function') recalcTvaLocation();
         if (typeof recalcRAS === 'function') recalcRAS();
         if (typeof recalcTaxeTouristique === 'function') recalcTaxeTouristique();
+        if (typeof recalcTimbre === 'function') recalcTimbre();
         updateSummary();
     }
 
