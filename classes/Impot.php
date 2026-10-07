@@ -216,14 +216,23 @@ abstract class Impot
     }
 
     /**
-     * Lire un montant saisi ("1 250 000", "75000,50") : null si vide ou non numérique
+     * Lire un montant saisi ("1 250 000", "1.250.000", "75000,50") : null si vide ou non numérique.
+     * Plusieurs points ou plusieurs virgules = séparateurs de milliers ; une seule virgule = décimale.
+     * (Copie conforme en JS : lireMontantJS() dans pages/impots.php)
      */
     public static function lireMontantSaisi($brut): ?float
     {
         if ($brut === null) {
             return null;
         }
-        $nettoye = str_replace([' ', "\u{00A0}", "\u{202F}", ','], ['', '', '', '.'], trim((string) $brut));
+        $nettoye = str_replace([' ', "\u{00A0}", "\u{202F}"], '', trim((string) $brut));
+        if (substr_count($nettoye, '.') > 1) {
+            $nettoye = str_replace('.', '', $nettoye);
+        }
+        if (substr_count($nettoye, ',') > 1) {
+            $nettoye = str_replace(',', '', $nettoye);
+        }
+        $nettoye = str_replace(',', '.', $nettoye);
         if ($nettoye === '' || !is_numeric($nettoye)) {
             return null;
         }

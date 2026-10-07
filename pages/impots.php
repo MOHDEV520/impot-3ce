@@ -318,9 +318,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $postTaxeTouristiqueLigne510 = (float) str_replace([' ', ','], ['', '.'], $_POST['taxe_touristique_ligne510'] ?? 0);
             $postTaxeTouristiqueLigne520 = (float) str_replace([' ', ','], ['', '.'], $_POST['taxe_touristique_ligne520'] ?? 0);
 
-            // Droit de timbre
-            $postTimbreEncaissements = Impot::lireMontantSaisi($_POST['timbre_encaissements_especes'] ?? null) ?? 0.0;
-            $postTimbreManuel = Impot::lireMontantSaisi($_POST['timbre_montant_manuel'] ?? null);
+            // Droit de timbre (module désactivé : champs absents du formulaire, on conserve les saisies stockées)
+            if ($timbreActif) {
+                $postTimbreEncaissements = Impot::lireMontantSaisi($_POST['timbre_encaissements_especes'] ?? null) ?? 0.0;
+                $postTimbreManuel = Impot::lireMontantSaisi($_POST['timbre_montant_manuel'] ?? null);
+            } else {
+                $postTimbreEncaissements = $compteGestion->getTimbreEncaissementsEspeces();
+                $postTimbreManuel = $compteGestion->getTimbreMontantManuel();
+            }
 
             // Lignes TVA Location
             $postLocLigne132 = (float) str_replace([' ', ','], ['', '.'], $_POST['loc_ligne132'] ?? 0);
@@ -2194,11 +2199,23 @@ $pageTitle = "Gestion des Impôts - " . $client->getNom();
         return Math.round(montant / 50000 * 160);
     }
 
+    // Copie conforme de Impot::lireMontantSaisi() : ce qui s'affiche est ce qui sera enregistr\u00E9
+    function lireMontantJS(brut) {
+        if (brut === null || brut === undefined) return null;
+        let s = String(brut).trim().replace(/[ \u00A0\u202F]/g, '');
+        if ((s.match(/\./g) || []).length > 1) s = s.replace(/\./g, '');
+        if ((s.match(/,/g) || []).length > 1) s = s.replace(/,/g, '');
+        s = s.replace(',', '.');
+        if (s === '' || !/^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/.test(s)) return null;
+        return Math.max(0, parseFloat(s));
+    }
+
     function recalcTimbre() {
-        const calcule = calculerDroitTimbreJS(parseInput('timbre_encaissements_especes'));
+        const elEncaiss = getEl('timbre_encaissements_especes');
+        const calcule = calculerDroitTimbreJS(lireMontantJS(elEncaiss ? elEncaiss.value : null) ?? 0);
         const elManuel = getEl('timbre_montant_manuel');
-        const manuelBrut = elManuel ? elManuel.value.replace(/[\s\u00A0\u202F]/g, '').replace(',', '.') : '';
-        const net = (manuelBrut === '' || isNaN(parseFloat(manuelBrut))) ? calcule : Math.max(0, Math.round(parseFloat(manuelBrut)));
+        const manuel = lireMontantJS(elManuel ? elManuel.value : null);
+        const net = manuel === null ? calcule : Math.round(manuel);
         const elCalc = getEl('timbre_val_calcule'); if (elCalc) elCalc.textContent = fmt(calcule);
         const elNet = getEl('timbre_val_net'); if (elNet) elNet.textContent = fmt(net);
         updateSummary();
