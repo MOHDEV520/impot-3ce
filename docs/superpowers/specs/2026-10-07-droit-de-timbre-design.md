@@ -17,24 +17,27 @@ centre des impôts) : pas de formulaire SIGTAS, pas de numéro de ligne, pas de 
 ## Ce que l'utilisateur a demandé vs hypothèses
 
 **Demandé :**
-- Barème art. 397, uniquement sur les paiements en espèces :
+- Barème (art. 397, simplifié à la demande de l'utilisateur), uniquement sur les
+  paiements en espèces :
   - < 1 000 F → 40 F
   - 1 000 à 10 000 F → 120 F
   - 10 000 à 50 000 F → 240 F
-  - au-delà : 160 F en sus par fraction de 50 000 F
+  - > 50 000 F → `round(montant / 50 000 × 160)` — division exacte, arrondi au franc
 - Saisie du **montant total encaissé en espèces** du mois, calcul automatique,
   avec possibilité de saisir directement le montant du timbre.
+- **Choix validé :** la formule au-delà de 50 000 F est proportionnelle, sans base de
+  240 F. Elle produit une baisse juste au-dessus de 50 000 F (50 000 → 240 ;
+  50 001 → 160 ; retour à 240 à 75 000) — accepté par l'utilisateur.
 
 **Hypothèses (à confirmer à la relecture) :**
 - **Bornes :** borne haute incluse. 1 000 → 120 ; 10 000 → 120 ; 10 001 → 240 ;
-  50 000 → 240. Au-delà de 50 000 : `240 + 160 × ceil((montant − 50 000) / 50 000)`
-  (toute fraction entamée compte). Ex. : 75 000 → 400 ; 100 000 → 400 ; 100 001 → 560.
+  50 000 → 240 ; 60 000 → 192 ; 100 000 → 320.
 - **Approximation assumée :** la loi s'applique *par titre* ; appliquer le barème au
   **total** mensuel donne un montant inférieur au timbre réel dès qu'il y a plusieurs
-  reçus (20 × 5 000 F : 2 400 F réels contre 400 F calculés). D'où le champ
+  reçus (20 × 5 000 F : 2 400 F réels contre 320 F calculés). D'où le champ
   « montant saisi » qui prime sur le calcul.
 - Module désactivé par défaut pour tous les clients (activation par client).
-- Montant arrondi à l'entier (le barème ne produit que des entiers).
+- Montant arrondi au franc (`round()` en PHP, `Math.round()` en JS).
 
 ## Modèle de référence
 
@@ -107,8 +110,8 @@ génériques, et les colonnes sont créées au démarrage par la migration.
 ## Vérification
 Pas de suite de tests dans le projet :
 1. Script CLI jetable (scratchpad) vérifiant `calculerDroitTimbre()` sur
-   0, 999, 1 000, 10 000, 10 001, 50 000, 50 001, 75 000, 100 000, 100 001 → attendus
-   0, 40, 120, 120, 240, 240, 400, 400, 400, 560.
+   0, 999, 1 000, 10 000, 10 001, 50 000, 50 001, 60 000, 75 000, 100 000 → attendus
+   0, 40, 120, 120, 240, 240, 160, 192, 240, 320.
 2. `php -l` sur chaque fichier modifié.
 3. Test manuel via le serveur local (`php -S`), admin connecté : activer le timbre sur un
    client, saisir un mois (calcul auto puis montant manuel), vérifier le total en direct,
