@@ -64,7 +64,17 @@
       "!assets/vendor/fontawesome/sprites-full/**/*",
       "!assets/vendor/fontawesome/scss/**/*",
       "!assets/vendor/fontawesome/metadata/**/*",
-      "!assets/vendor/fontawesome/js/**/*"
+      "!assets/vendor/fontawesome/js/**/*",
+      "!.claude/**/*",
+      "!.superpowers/**/*",
+      "!.impeccable/**/*",
+      "!docs/**/*",
+      "!DESIGN/**/*",
+      "!database/gestion_fiscale.db*",
+      "!CLAUDE.md",
+      "!fiche_technique_systeme_gestion_fiscale_oop.md",
+      "!plan_systeme_gestion_fiscale.md",
+      "!user_stories_systeme_gestion_fiscale.md"
     ]
   },
   "keywords": [],
