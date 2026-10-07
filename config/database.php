@@ -452,6 +452,8 @@ class Database
             'taxe_touristique_type' => "VARCHAR(20) DEFAULT ''",
             'taxe_touristique_ligne510' => 'DECIMAL(15,2) DEFAULT 0',
             'taxe_touristique_ligne520' => 'DECIMAL(15,2) DEFAULT 0',
+            'timbre_encaissements_especes' => 'DECIMAL(15,2) DEFAULT 0',
+            'timbre_montant_manuel' => 'DECIMAL(15,2) DEFAULT NULL',
             'its' => 'DECIMAL(15,2) DEFAULT 0',
             'marge' => 'DECIMAL(5,3) DEFAULT 1.30',
             'marge_taxable' => 'DECIMAL(5,3) DEFAULT 1.30',
@@ -481,6 +483,7 @@ class Database
             'css_actif' => 'TINYINT(1) DEFAULT 1',
             'ras_actif' => 'TINYINT(1) DEFAULT 0',
             'taxe_touristique_actif' => 'TINYINT(1) DEFAULT 0',
+            'timbre_actif' => 'TINYINT(1) DEFAULT 0',
             'sans_marges' => 'TINYINT(1) DEFAULT 0'
         ];
 
@@ -516,6 +519,9 @@ class Database
 
         // 6. Colonne Taxe Touristique (Loi n°96-052)
         $this->ajouterColonneSiManquante('impots_mensuels', 'taxe_touristique', 'DECIMAL(15,2) DEFAULT 0');
+
+        // 7. Colonne Droit de timbre (paiements en espèces, Art. 397)
+        $this->ajouterColonneSiManquante('impots_mensuels', 'droit_timbre', 'DECIMAL(15,2) DEFAULT 0');
 
         // Index de performance pour usage professionnel
         $this->creerIndexSiManquant('achats', 'idx_achats_client_date', '(client_id, annee, mois)');

@@ -71,6 +71,7 @@ CREATE TABLE parametres_fiscaux (
     irf_tf_actif BOOLEAN DEFAULT 0,
     css_actif BOOLEAN DEFAULT 1,
     taxe_touristique_actif BOOLEAN DEFAULT 0,
+    timbre_actif BOOLEAN DEFAULT 0,
     
     -- Location (si applicable)
     valeur_locative_mensuelle DECIMAL(15,2) DEFAULT 0,
@@ -153,6 +154,8 @@ CREATE TABLE compte_gestion_mensuel (
     taxe_touristique_type VARCHAR(20) DEFAULT '',
     taxe_touristique_ligne510 DECIMAL(15,2) DEFAULT 0,
     taxe_touristique_ligne520 DECIMAL(15,2) DEFAULT 0,
+    timbre_encaissements_especes DECIMAL(15,2) DEFAULT 0,
+    timbre_montant_manuel DECIMAL(15,2) DEFAULT NULL,
 
     -- Impôts directs et paramètres
     its DECIMAL(15,2) DEFAULT 0,
@@ -337,6 +340,9 @@ CREATE TABLE impots_mensuels (
 
     -- Taxe Touristique (Loi n°96-052) - Lig. 510 x 520
     taxe_touristique DECIMAL(15,2) DEFAULT 0,
+
+    -- Droit de timbre (paiements en espèces, Art. 397)
+    droit_timbre DECIMAL(15,2) DEFAULT 0,
 
     -- Total
     total_impots DECIMAL(15,2) DEFAULT 0,
