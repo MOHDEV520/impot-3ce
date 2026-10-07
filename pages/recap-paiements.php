@@ -191,7 +191,11 @@ $taxeTouristique = $taxeTouristiqueActif
     : 0;
 
 // Total
-$totalImpots = $tvaNet + $cf + $tl + $its + $css + $irf + $tf + $tvaLocation + $ras + $taxeTouristique;
+// Droit de timbre (paiements en espèces), si activé pour ce client
+$timbreActif = $parametres ? (int)($parametres['timbre_actif'] ?? 0) : 0;
+$droitTimbre = Impot::droitTimbreMensuel($parametres ?: null, $compteGestion ?: null);
+
+$totalImpots = $tvaNet + $cf + $tl + $its + $css + $irf + $tf + $tvaLocation + $ras + $taxeTouristique + $droitTimbre;
 
 // Formatage
 function formatMontant($montant) {
@@ -464,6 +468,12 @@ $dateGeneration = date('d/m/Y');
                     <tr>
                         <td>Taxe Touristique</td>
                         <td class="<?= $taxeTouristique == 0 ? 'zero' : '' ?>"><?= formatMontant($taxeTouristique) ?></td>
+                    </tr>
+                    <?php endif; ?>
+                    <?php if ($timbreActif): ?>
+                    <tr>
+                        <td>Droit de Timbre</td>
+                        <td class="<?= $droitTimbre == 0 ? 'zero' : '' ?>"><?= formatMontant($droitTimbre) ?></td>
                     </tr>
                     <?php endif; ?>
                     <tr class="total-row">

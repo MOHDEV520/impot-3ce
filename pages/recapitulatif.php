@@ -235,6 +235,9 @@ $taxeTouristique = $taxeTouristiqueActif
     ? round((float)($compteGestion['taxe_touristique_ligne510'] ?? 0) * (float)($compteGestion['taxe_touristique_ligne520'] ?? 0), 2)
     : 0;
 
+// 2i. Droit de timbre (paiements en espèces), si activé pour ce client
+$droitTimbre = Impot::droitTimbreMensuel($parametresFiscaux ?: null, $compteGestion ?: null);
+
 // Récupérer les impôts
 $impotsSaved = $db->fetchOne(
     "SELECT * FROM impots_mensuels WHERE client_id = ? AND mois = ? AND annee = ?",
@@ -243,7 +246,7 @@ $impotsSaved = $db->fetchOne(
 
 // Pour le recapitulatif, garder la logique declaration TVA (ligne 131 = 111 - 125).
 
-$totalImpots = $tvaNette + $cf + $tl + $its + $irf + $tf + $css + $tvaLocation + $ras + $taxeTouristique;
+$totalImpots = $tvaNette + $cf + $tl + $its + $irf + $tf + $css + $tvaLocation + $ras + $taxeTouristique + $droitTimbre;
 
 // Total des dépenses = Dépenses normales + Masse Salariale + Impôts déclarés
 $totalDepenses = $totalDepensesNormales + $masseSalariale + $totalImpots;

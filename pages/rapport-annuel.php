@@ -144,6 +144,7 @@ $impotsAnnuels = $db->fetchOne(
             SUM(tf) as tf_total,
             SUM(css) as css_total,
             SUM(taxe_touristique) as taxe_touristique_total,
+            SUM(droit_timbre) as droit_timbre_total,
             SUM(total_impots) as total_general
      FROM impots_mensuels
      WHERE client_id = ? AND annee = ?",
@@ -160,7 +161,8 @@ $tvaLocationAnnuel = (float)($impotsAnnuels['tva_location_total'] ?? 0);
 $tfAnnuel = (float)($impotsAnnuels['tf_total'] ?? 0);
 $cssAnnuel = (float)($impotsAnnuels['css_total'] ?? 0);
 $taxeTouristiqueAnnuel = (float)($impotsAnnuels['taxe_touristique_total'] ?? 0);
-$totalImpotsAnnuel = $tvaAnnuel + $cfAnnuel + $itsImpotsAnnuel + $tlAnnuel + $irfAnnuel + $tvaLocationAnnuel + $tfAnnuel + $cssAnnuel + $taxeTouristiqueAnnuel;
+$droitTimbreAnnuel = (float)($impotsAnnuels['droit_timbre_total'] ?? 0);
+$totalImpotsAnnuel = $tvaAnnuel + $cfAnnuel + $itsImpotsAnnuel + $tlAnnuel + $irfAnnuel + $tvaLocationAnnuel + $tfAnnuel + $cssAnnuel + $taxeTouristiqueAnnuel + $droitTimbreAnnuel;
 
 // Si la table impots_mensuels est vide, recalculer
 if ($totalImpotsAnnuel == 0 && $caGlobalAnnuel > 0) {
@@ -448,6 +450,7 @@ $pageTitle = "Rapport Annuel " . $annee . " - " . htmlspecialchars($client['nom'
                             ['Taxe Foncière (TF)', $tfAnnuel],
                             ['Contribution Spéciale Solidarité (CSS)', $cssAnnuel],
                             ['Taxe Touristique', $taxeTouristiqueAnnuel],
+                            ['Droit de Timbre', $droitTimbreAnnuel],
                         ];
                         foreach ($lignesImpots as $li):
                             if ($li[1] > 0):
