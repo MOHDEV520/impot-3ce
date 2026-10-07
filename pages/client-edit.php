@@ -66,6 +66,7 @@ $donnees = [
     'css_actif' => $parametres['css_actif'] ?? '1',
     'ras_actif' => $parametres['ras_actif'] ?? '0',
     'taxe_touristique_actif' => $parametres['taxe_touristique_actif'] ?? '0',
+    'timbre_actif' => $parametres['timbre_actif'] ?? '0',
     'sans_marges' => $parametres['sans_marges'] ?? '0',
     'marge' => $parametres['marge'] ?? '1.30',
     'marge_taxable' => $parametres['marge_taxable'] ?? '1.30',
@@ -104,6 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'css_actif' => isset($_POST['css_actif']) ? '1' : '0',
         'ras_actif' => isset($_POST['ras_actif']) ? '1' : '0',
         'taxe_touristique_actif' => isset($_POST['taxe_touristique_actif']) ? '1' : '0',
+        'timbre_actif' => isset($_POST['timbre_actif']) ? '1' : '0',
         'sans_marges' => isset($_POST['sans_marges']) ? '1' : '0',
         'marge' => trim($_POST['marge'] ?? '1.30'),
         'marge_taxable' => trim($_POST['marge_taxable'] ?? '1.30'),
@@ -148,6 +150,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'css_actif' => (int) $donnees['css_actif'],
                     'ras_actif' => (int) $donnees['ras_actif'],
                     'taxe_touristique_actif' => (int) $donnees['taxe_touristique_actif'],
+                    'timbre_actif' => (int) $donnees['timbre_actif'],
                     'sans_marges' => (int) $donnees['sans_marges'],
                     'marge' => (float) $donnees['marge'],
                     'marge_taxable' => (float) $donnees['marge_taxable'],
@@ -384,6 +387,11 @@ require_once APP_ROOT . '/includes/header.php';
                             <input type="checkbox" name="taxe_touristique_actif" value="1" <?= $donnees['taxe_touristique_actif'] == '1' ? 'checked' : '' ?>
                                    class="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500">
                             <span class="ml-2 text-sm text-gray-600">Taxe Touristique (hébergement, compagnies aériennes, agences de voyage)</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="timbre_actif" value="1" <?= $donnees['timbre_actif'] == '1' ? 'checked' : '' ?>
+                                   class="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500">
+                            <span class="ml-2 text-sm text-gray-600">Droit de timbre (paiements en espèces)</span>
                         </label>
                         <label class="flex items-center mt-3 p-2 bg-amber-50 border border-amber-200 rounded-lg">
                             <input type="checkbox" name="sans_marges" value="1" <?= $donnees['sans_marges'] == '1' ? 'checked' : '' ?>
